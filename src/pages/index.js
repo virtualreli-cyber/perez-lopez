@@ -286,7 +286,7 @@ async function loadInitialData() {
             .order('fecha', { ascending: true });
           if (evtErr) throw evtErr;
           state.events = eventosData.map(e => ({
-            id: e.id, title: e.titulo, date: e.fecha, time: e.hora, category: e.categoria
+            id: e.id, title: e.titulo, date: e.fecha, time: e.hora, category: e.categoria, completed: e.completado || false
           }));
 
           // 10. Metas de Ahorro
@@ -1007,7 +1007,7 @@ export const db = {
   // --- EVENTOS ---
   async addEvent(title, date, time, category) {
     const tempId = -Date.now();
-    const newEvt = { id: tempId, title, date, time, category };
+    const newEvt = { id: tempId, title, date, time, category, completed: false };
 
     state.events.push(newEvt);
     triggerRerender();
@@ -1016,11 +1016,11 @@ export const db = {
       try {
         const { data, error } = await supabase
           .from('eventos')
-          .insert({ pareja_id: state.parejaId, titulo: title, fecha: date, hora: time, categoria: category })
+          .insert({ pareja_id: state.parejaId, titulo: title, fecha: date, hora: time, categoria: category, completado: false })
           .select()
           .single();
         if (!error && data) {
-          state.events = state.events.map(e => e.id === tempId ? { id: data.id, title: data.titulo, date: data.fecha, time: data.hora, category: data.categoria } : e);
+          state.events = state.events.map(e => e.id === tempId ? { id: data.id, title: data.titulo, date: data.fecha, time: data.hora, category: data.categoria, completed: data.completado || false } : e);
           return;
         }
         console.error('Error Supabase:', error);
@@ -1073,15 +1073,35 @@ export const db = {
     }
   },
 
-  async updateEvent(id, { title, date, time, category }) {
+  async updateEvent(id, { title, date, time, category, completed }) {
     const originalEvents = [...state.events];
-    state.events = state.events.map(e => e.id === id ? { ...e, title, date: date, time: time, category } : e);
+    state.events = state.events.map(e => e.id === id ? { ...e, title, date, time, category, completed: completed !== undefined ? completed : e.completed } : e);
     triggerRerender();
 
     if (supabase) {
       const { error } = await supabase
         .from('eventos')
-        .update({ titulo: title, fecha: date, hora: time, categoria: category })
+        .update({ titulo: title, fecha: date, hora: time, categoria: category, completado: completed })
+        .eq('id', id);
+      if (error) {
+        console.error('Error Supabase:', error);
+        state.events = originalEvents;
+        triggerRerender();
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  async toggleEvent(id, completed) {
+    const originalEvents = [...state.events];
+    state.events = state.events.map(e => e.id === id ? { ...e, completed } : e);
+    triggerRerender();
+
+    if (supabase) {
+      const { error } = await supabase
+        .from('eventos')
+        .update({ completado: completed })
         .eq('id', id);
       if (error) {
         console.error('Error Supabase:', error);

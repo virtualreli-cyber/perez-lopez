@@ -226,10 +226,25 @@ export function init(state, db) {
       const month = dateObj.toLocaleDateString('es-ES', { month: 'short' });
       const weekday = dateObj.toLocaleDateString('es-ES', { weekday: 'short' });
 
-      // Todas las filas tienen la misma estética y colores uniformes de borde
-      const borderClass = 'border-l-accent'; // Mismo color de borde para todas las filas
+      const isPast = evt.date < todayStr;
+      const isCompleted = evt.completed || false;
+
+      // COLOR DE BORDE IZQUIERDO:
+      // - Si está completado: Gris (para indicar que ya no está pendiente)
+      // - Si no está completado: Verde (color de realce/activo)
+      const borderClass = isCompleted ? 'border-l-outline-variant/40' : 'border-l-accent';
       
-      // Colores de texto de badge específicos por categoría para elegancia
+      // Estilo del bloque de fecha:
+      // - Si ya ha pasado la fecha del evento: Fondo grisáceo y texto outline para diferenciarlo de eventos futuros
+      const dateBlockClass = isPast
+        ? 'bg-outline-variant/10 text-outline border-outline-variant/10'
+        : 'bg-background text-primary border-outline-variant/10';
+
+      const titleClass = isCompleted
+        ? 'line-through text-outline font-normal'
+        : 'text-primary font-bold';
+
+      // Colores de texto de badge específicos por categoría
       const badgeTextColors = {
         'Social': 'text-accent',
         'Salud': 'text-primary',
@@ -330,22 +345,32 @@ export function init(state, db) {
         // MODO VISTA NORMAL
         itemDiv.innerHTML = `
           <div class="flex items-center justify-between gap-3 bg-surface rounded-xl p-3 border border-outline-variant/20 hover:border-outline-variant/40 hover:shadow-sm transition-all border-l-[5px] ${borderClass}">
-            <div class="flex items-center gap-3.5 flex-1 min-w-0">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <!-- Checkbox para Selección de borrado múltiple -->
               <input type="checkbox" ${isSelected ? 'checked' : ''} data-select-id="${evt.id}" id="event-select-${evt.id}"
                 class="select-delete-checkbox rounded border-outline-variant text-error focus:ring-0 focus:ring-offset-0 focus:outline-none w-4 h-4 cursor-pointer transition-all shrink-0"/>
 
+              <!-- Checkbox para marcar como Completado -->
+              <input type="checkbox" ${isCompleted ? 'checked' : ''} data-toggle-id="${evt.id}" id="event-toggle-${evt.id}"
+                class="rounded-lg border-outline-variant text-accent focus:ring-0 focus:ring-offset-0 focus:outline-none w-5 h-5 transition-colors cursor-pointer checkbox-bounce shrink-0"/>
+
               <!-- Bloque de Fecha Compacto -->
-              <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-background text-primary shrink-0 border border-outline-variant/10 cursor-pointer event-clickable" data-id="${evt.id}" title="Haga clic para editar">
+              <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg ${dateBlockClass} shrink-0 border cursor-pointer event-clickable" data-id="${evt.id}" title="Haga clic para editar">
                 <span class="text-[9px] font-extrabold text-outline uppercase tracking-wider">${month.replace('.', '')}</span>
                 <span class="text-base font-extrabold -mt-0.5 leading-none">${day}</span>
               </div>
               
               <div class="min-w-0 flex-1 cursor-pointer event-clickable" data-id="${evt.id}" title="Haga clic para editar">
                 <div class="flex items-center gap-2 flex-wrap mb-0.5">
-                  <h4 class="text-sm font-bold text-primary truncate leading-snug">${evt.title}</h4>
+                  <h4 class="text-sm ${titleClass} truncate leading-snug">${evt.title}</h4>
                   <span class="inline-block text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-background ${badgeColorClass} border border-outline-variant/5">
                     ${evt.category}
                   </span>
+                  ${isPast ? `
+                    <span class="inline-flex items-center gap-0.5 text-[8px] font-bold bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-md uppercase tracking-wider border border-outline-variant/10">
+                      <span class="material-symbols-outlined text-[10px]">history</span> Pasado
+                    </span>
+                  ` : ''}
                 </div>
                 <p class="text-[10px] text-outline capitalize font-medium flex items-center gap-1">
                   <span class="material-symbols-outlined text-[12px] text-outline">schedule</span> ${evt.time} hs — ${weekday}
@@ -365,6 +390,13 @@ export function init(state, db) {
             editingEventId = evt.id;
             renderEventsList();
           });
+        });
+
+        // Escuchar cambios completar
+        itemDiv.querySelector(`input[data-toggle-id="${evt.id}"]`).addEventListener('change', async (e) => {
+          e.target.blur();
+          const nextState = !evt.completed;
+          await db.toggleEvent(evt.id, nextState);
         });
 
         // Evento selección borrado
