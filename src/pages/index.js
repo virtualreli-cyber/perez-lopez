@@ -106,6 +106,26 @@ const defaultFinancesTransactions = [
   { id: 7, accountId: 1, categoryId: 3, subcategoryId: 6, type: 'ingreso', desc: 'Nómina Lidia', amount: 2100.00, payer: 'Lidia', date: '2026-06-01' }
 ];
 
+const defaultWeddingBudget = [
+  { id: 1, category: 'BANQUETE', concept: 'Catering (350 pax aprox x ±90€)', total: 31150.00, paid: 1000.00, nextPaymentDate: 'Julio', nextPaymentAmount: '50% del total', pending: 30150.00, isGift: false },
+  { id: 2, category: 'BANQUETE', concept: 'Alquiler Finca', total: 5200.00, paid: 2579.50, nextPaymentDate: 'Julio', nextPaymentAmount: '2.621€', pending: 2621.00, isGift: false },
+  { id: 3, category: 'BANQUETE', concept: 'Fianza La Carreña', total: 500.00, paid: 0.00, nextPaymentDate: 'Julio', nextPaymentAmount: '', pending: 500.00, isGift: false },
+  { id: 4, category: 'BANQUETE', concept: 'Iluminación', total: 3086.00, paid: 382.50, nextPaymentDate: 'Agosto', nextPaymentAmount: '2.704€', pending: 2704.00, isGift: false },
+  { id: 5, category: 'FIESTA', concept: 'DJ + Sonido (Equipo extra)', total: 2257.00, paid: 346.67, nextPaymentDate: 'Agosto', nextPaymentAmount: '1.910€', pending: 1910.00, isGift: false },
+  { id: 6, category: 'FIESTA', concept: 'Autobuses (2-3 unidades)', total: 1500.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '1.500€', pending: 1500.00, isGift: false },
+  { id: 7, category: 'FIESTA', concept: 'Fotocool', total: 630.00, paid: 50.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '580€', pending: 580.00, isGift: false },
+  { id: 8, category: 'FOTO/VIDEO', concept: 'Pack Fotografía y Vídeo', total: 2300.00, paid: 300.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '2.000€', pending: 2000.00, isGift: false },
+  { id: 9, category: 'IGLESIA', concept: 'Donación Iglesia', total: 400.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '400€', pending: 400.00, isGift: false },
+  { id: 10, category: 'IGLESIA', concept: 'Flores Iglesia y Finca', total: 1000.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '1.000€', pending: 1000.00, isGift: false },
+  { id: 11, category: 'IGLESIA', concept: 'Expediente y Alianzas', total: 100.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '100€', pending: 100.00, isGift: false },
+  { id: 12, category: 'IMAGEN', concept: 'Vestido Novia + Arreglos', total: 2390.00, paid: 1195.00, nextPaymentDate: 'Julio', nextPaymentAmount: '', pending: 1195.00, isGift: true },
+  { id: 13, category: 'IMAGEN', concept: 'Traje Novio', total: 1440.00, paid: 740.00, nextPaymentDate: 'Junio', nextPaymentAmount: '700€', pending: 700.00, isGift: false },
+  { id: 14, category: 'IMAGEN', concept: 'Maquillaje y Peluquería', total: 350.00, paid: 50.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '300€', pending: 300.00, isGift: false },
+  { id: 15, category: 'REGALOS', concept: 'Invitaciones y Cartelería', total: 550.00, paid: 130.00, nextPaymentDate: '', nextPaymentAmount: '420€', pending: 420.00, isGift: false },
+  { id: 16, category: 'REGALOS', concept: 'Regalos Invitados', total: 1300.00, paid: 86.52, nextPaymentDate: '', nextPaymentAmount: '1.213€', pending: 1213.00, isGift: false },
+  { id: 17, category: 'VIAJE', concept: 'Viaje', total: 7684.00, paid: 5239.21, nextPaymentDate: 'pronto', nextPaymentAmount: '2.445€', pending: 2445.00, isGift: false }
+];
+
 // --- CARGA INICIAL DE DATOS (SUPABASE O LOCALSTORAGE) ---
 
 async function loadInitialData() {
@@ -351,17 +371,52 @@ async function loadInitialData() {
             .eq('pareja_id', state.parejaId)
             .order('id', { ascending: true });
           if (!presErr && presupuestoData) {
-            state.weddingBudget = presupuestoData.map(item => ({
-              id: item.id,
-              category: item.categoria,
-              concept: item.concepto,
-              total: parseFloat(item.presupuesto_total) || 0.00,
-              paid: parseFloat(item.pagado) || 0.00,
-              nextPaymentDate: item.fecha_proximo_pago || '',
-              nextPaymentAmount: item.proximo_pago || '',
-              pending: parseFloat(item.pendiente_final) || 0.00,
-              isGift: item.es_regalo || false
-            }));
+            if (presupuestoData.length > 0) {
+              state.weddingBudget = presupuestoData.map(item => ({
+                id: item.id,
+                category: item.categoria,
+                concept: item.concepto,
+                total: parseFloat(item.presupuesto_total) || 0.00,
+                paid: parseFloat(item.pagado) || 0.00,
+                nextPaymentDate: item.fecha_proximo_pago || '',
+                nextPaymentAmount: item.proximo_pago || '',
+                pending: parseFloat(item.pendiente_final) || 0.00,
+                isGift: item.es_regalo || false
+              }));
+            } else {
+              console.log('Sembrando presupuesto por defecto en Supabase...');
+              const { data: insertedData, error: insertErr } = await supabase
+                .from('boda_presupuesto')
+                .insert(defaultWeddingBudget.map(item => ({
+                  pareja_id: state.parejaId,
+                  categoria: item.category,
+                  concepto: item.concept,
+                  presupuesto_total: item.total,
+                  pagado: item.paid,
+                  fecha_proximo_pago: item.nextPaymentDate,
+                  proximo_pago: item.nextPaymentAmount,
+                  pendiente_final: item.pending,
+                  es_regalo: item.isGift
+                })))
+                .select();
+              
+              if (!insertErr && insertedData) {
+                state.weddingBudget = insertedData.map(item => ({
+                  id: item.id,
+                  category: item.categoria,
+                  concept: item.concepto,
+                  total: parseFloat(item.presupuesto_total) || 0.00,
+                  paid: parseFloat(item.pagado) || 0.00,
+                  nextPaymentDate: item.fecha_proximo_pago || '',
+                  nextPaymentAmount: item.proximo_pago || '',
+                  pending: parseFloat(item.pendiente_final) || 0.00,
+                  isGift: item.es_regalo || false
+                }));
+              } else {
+                console.error('Error al sembrar presupuesto en Supabase:', insertErr);
+                state.weddingBudget = defaultWeddingBudget;
+              }
+            }
           }
 
           console.log('Datos públicos cargados correctamente desde Supabase.');
@@ -375,25 +430,6 @@ async function loadInitialData() {
   }
 
   // FALLBACK LOCALSTORAGE
-  const defaultWeddingBudget = [
-    { id: 1, category: 'BANQUETE', concept: 'Catering (350 pax aprox x ±90€)', total: 31150.00, paid: 1000.00, nextPaymentDate: 'Julio', nextPaymentAmount: '50% del total', pending: 30150.00, isGift: false },
-    { id: 2, category: 'BANQUETE', concept: 'Alquiler Finca', total: 5200.00, paid: 2579.50, nextPaymentDate: 'Julio', nextPaymentAmount: '2.621€', pending: 2621.00, isGift: false },
-    { id: 3, category: 'BANQUETE', concept: 'Fianza La Carreña', total: 500.00, paid: 0.00, nextPaymentDate: 'Julio', nextPaymentAmount: '', pending: 500.00, isGift: false },
-    { id: 4, category: 'BANQUETE', concept: 'Iluminación', total: 3086.00, paid: 382.50, nextPaymentDate: 'Agosto', nextPaymentAmount: '2.704€', pending: 2704.00, isGift: false },
-    { id: 5, category: 'FIESTA', concept: 'DJ + Sonido (Equipo extra)', total: 2257.00, paid: 346.67, nextPaymentDate: 'Agosto', nextPaymentAmount: '1.910€', pending: 1910.00, isGift: false },
-    { id: 6, category: 'FIESTA', concept: 'Autobuses (2-3 unidades)', total: 1500.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '1.500€', pending: 1500.00, isGift: false },
-    { id: 7, category: 'FIESTA', concept: 'Fotocool', total: 630.00, paid: 50.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '580€', pending: 580.00, isGift: false },
-    { id: 8, category: 'FOTO/VIDEO', concept: 'Pack Fotografía y Vídeo', total: 2300.00, paid: 300.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '2.000€', pending: 2000.00, isGift: false },
-    { id: 9, category: 'IGLESIA', concept: 'Donación Iglesia', total: 400.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '400€', pending: 400.00, isGift: false },
-    { id: 10, category: 'IGLESIA', concept: 'Flores Iglesia y Finca', total: 1000.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '1.000€', pending: 1000.00, isGift: false },
-    { id: 11, category: 'IGLESIA', concept: 'Expediente y Alianzas', total: 100.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '100€', pending: 100.00, isGift: false },
-    { id: 12, category: 'IMAGEN', concept: 'Vestido Novia + Arreglos', total: 2390.00, paid: 1195.00, nextPaymentDate: 'Julio', nextPaymentAmount: '', pending: 1195.00, isGift: true },
-    { id: 13, category: 'IMAGEN', concept: 'Traje Novio', total: 1440.00, paid: 740.00, nextPaymentDate: 'Junio', nextPaymentAmount: '700€', pending: 700.00, isGift: false },
-    { id: 14, category: 'IMAGEN', concept: 'Maquillaje y Peluquería', total: 350.00, paid: 50.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '300€', pending: 300.00, isGift: false },
-    { id: 15, category: 'REGALOS', concept: 'Invitaciones y Cartelería', total: 550.00, paid: 130.00, nextPaymentDate: '', nextPaymentAmount: '420€', pending: 420.00, isGift: false },
-    { id: 16, category: 'REGALOS', concept: 'Regalos Invitados', total: 1300.00, paid: 86.52, nextPaymentDate: '', nextPaymentAmount: '1.213€', pending: 1213.00, isGift: false },
-    { id: 17, category: 'VIAJE', concept: 'Viaje', total: 7684.00, paid: 5239.21, nextPaymentDate: 'pronto', nextPaymentAmount: '2.445€', pending: 2445.00, isGift: false }
-  ];
 
   state.modulesConfig = JSON.parse(localStorage.getItem('state_modules_config')) || defaultModulesConfig;
   state.shopping = JSON.parse(localStorage.getItem('state_shopping')) || defaultShopping;

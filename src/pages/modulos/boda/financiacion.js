@@ -208,20 +208,20 @@ export function render(state) {
         <!-- Desglose por Invitado del Banquete -->
         ${Card({
           content: `
-            <div class="flex items-center justify-between mb-4 border-b border-outline-variant/15 pb-3">
+            <div class="flex items-center justify-between mb-5 border-b border-outline-variant/15 pb-4">
               <h3 class="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
                 <span class="material-symbols-outlined text-[18px]">restaurant_menu</span> Costes por Cubierto
               </h3>
-              <span id="pax-count-badge" class="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">280 invitados</span>
+              <span id="pax-count-badge" class="text-[10px] bg-primary/10 text-primary font-bold px-2.5 py-0.5 rounded-full">280 invitados</span>
             </div>
             
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="border-b border-outline-variant/10">
-                    <th class="pb-2 text-[10px] font-bold text-outline uppercase">Concepto</th>
-                    <th class="pb-2 text-[10px] font-bold text-outline uppercase text-right">Total</th>
-                    <th class="pb-2 text-[10px] font-bold text-outline uppercase text-right">Por Pax</th>
+                    <th class="pb-3 px-3 text-[10px] font-bold text-outline uppercase">Concepto</th>
+                    <th class="pb-3 px-3 text-[10px] font-bold text-outline uppercase text-right">Total</th>
+                    <th class="pb-3 px-3 text-[10px] font-bold text-outline uppercase text-right">Por Pax</th>
                   </tr>
                 </thead>
                 <tbody id="banquete-breakdown-rows" class="divide-y divide-outline-variant/5 text-xs">
@@ -230,7 +230,7 @@ export function render(state) {
               </table>
             </div>
 
-            <div class="mt-4 pt-3 border-t border-outline-variant/15 flex flex-col gap-1 text-center bg-background/50 rounded-xl p-3">
+            <div class="mt-5 pt-4 border-t border-outline-variant/15 flex flex-col gap-1 text-center bg-background/50 rounded-xl p-3.5">
               <span class="text-[10px] text-outline font-bold uppercase">Coste Real de la Boda por Invitado</span>
               <span id="wedding-total-pax-cost" class="text-xl font-black text-accent">€0,00</span>
               <span class="text-[9px] text-outline font-medium">Boda completa (sin regalos) / invitados</span>
@@ -294,7 +294,6 @@ export function init(state, db) {
 
     // 3. Neto Pareja (Descontando todo lo cubierto por los cubiertos/banquete de los invitados)
     // Conceptos considerados "dentro del cubierto": Catering (N * C), Finca (50%), Iluminación y DJ.
-    // Para calcular este total, restamos las versiones contratadas de estos conceptos de la suma real.
     let totalSinCubierto = 0;
     let paidSinCubierto = 0;
 
@@ -393,29 +392,29 @@ export function init(state, db) {
     if (tbody) {
       tbody.innerHTML = `
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-2.5 font-semibold text-primary">Catering (${N} pax x €${C.toLocaleString('es-ES', { minimumFractionDigits: 0 })})</td>
-          <td class="py-2.5 text-right font-bold text-primary">€${cateringTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-2.5 text-right font-bold text-accent">€${cateringPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x €${C.toLocaleString('es-ES', { minimumFractionDigits: 0 })})</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">€${cateringTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">€${cateringPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-2.5 font-semibold text-primary">Alquiler Finca (50%)</td>
-          <td class="py-2.5 text-right font-bold text-primary">€${fincaTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-2.5 text-right font-bold text-accent">€${fincaPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">Alquiler Finca (50%)</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">€${fincaTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">€${fincaPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-2.5 font-semibold text-primary">Iluminación</td>
-          <td class="py-2.5 text-right font-bold text-primary">€${ilumTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-2.5 text-right font-bold text-accent">€${ilumPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">Iluminación</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">€${ilumTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">€${ilumPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-2.5 font-semibold text-primary">DJ + Sonido</td>
-          <td class="py-2.5 text-right font-bold text-primary">€${djTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-2.5 text-right font-bold text-accent">€${djPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">DJ + Sonido</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">€${djTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">€${djPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
         <tr class="font-bold bg-primary/5">
-          <td class="py-3 pl-2 text-primary rounded-l-xl">TOTAL BANQUETE</td>
-          <td class="py-3 text-right text-primary">€${banqueteTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-3 pr-2 text-right text-accent rounded-r-xl">€${banquetePaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-4 pl-3 text-primary rounded-l-xl">TOTAL BANQUETE</td>
+          <td class="py-4 px-3 text-right text-primary">€${banqueteTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-4 pr-3 text-right text-accent rounded-r-xl">€${banquetePaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         </tr>
       `;
     }
@@ -488,11 +487,24 @@ export function init(state, db) {
         const isEditing = editingItemId === item.id;
         
         if (isEditing) {
-          // MODO EDICIÓN INLINE
+          // MODO EDICIÓN INLINE (Todos los campos editables, incluyendo categoría)
           itemEl.innerHTML = `
             <div class="bg-surface/50 p-4 rounded-xl border border-outline-variant/30 space-y-4 my-3 transition-all">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                <div class="md:col-span-4">
+                <div class="md:col-span-2">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
+                  <select id="edit-category-${item.id}" class="w-full bg-background border-none rounded-lg px-2 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold">
+                    <option value="BANQUETE" ${item.category === 'BANQUETE' ? 'selected' : ''}>Banquete</option>
+                    <option value="FIESTA" ${item.category === 'FIESTA' ? 'selected' : ''}>Fiesta</option>
+                    <option value="FOTO/VIDEO" ${item.category === 'FOTO/VIDEO' ? 'selected' : ''}>Foto / Vídeo</option>
+                    <option value="IGLESIA" ${item.category === 'IGLESIA' ? 'selected' : ''}>Iglesia</option>
+                    <option value="IMAGEN" ${item.category === 'IMAGEN' ? 'selected' : ''}>Imagen</option>
+                    <option value="REGALOS" ${item.category === 'REGALOS' ? 'selected' : ''}>Regalos</option>
+                    <option value="VIAJE" ${item.category === 'VIAJE' ? 'selected' : ''}>Viaje</option>
+                    <option value="OTROS" ${item.category === 'OTROS' ? 'selected' : ''}>Otros</option>
+                  </select>
+                </div>
+                <div class="md:col-span-3">
                   <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Concepto / Proveedor</label>
                   <input type="text" id="edit-concept-${item.id}" value="${item.concept}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold" required />
                 </div>
@@ -504,12 +516,12 @@ export function init(state, db) {
                   <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Pagado (€)</label>
                   <input type="number" step="0.01" id="edit-paid-${item.id}" value="${item.paid}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
                 </div>
-                <div class="md:col-span-2">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Fecha Pago</label>
-                  <input type="text" id="edit-next-date-${item.id}" value="${item.nextPaymentDate}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Ej: Julio" />
+                <div class="md:col-span-1">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Vto. Pago</label>
+                  <input type="text" id="edit-next-date-${item.id}" value="${item.nextPaymentDate}" class="w-full bg-background border-none rounded-lg px-2 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Julio" />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Importe Pago</label>
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Importe Prox. Pago</label>
                   <input type="text" id="edit-next-amount-${item.id}" value="${item.nextPaymentAmount}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Ej: 2.621€" />
                 </div>
               </div>
@@ -537,6 +549,7 @@ export function init(state, db) {
 
           saveBtn.addEventListener('click', async (e) => {
             e.currentTarget.blur();
+            const category = itemEl.querySelector(`#edit-category-${item.id}`).value;
             const concept = itemEl.querySelector(`#edit-concept-${item.id}`).value.trim();
             const total = parseFloat(itemEl.querySelector(`#edit-total-${item.id}`).value) || 0;
             const paid = parseFloat(itemEl.querySelector(`#edit-paid-${item.id}`).value) || 0;
@@ -546,7 +559,7 @@ export function init(state, db) {
 
             if (concept) {
               await db.updateWeddingBudgetItem(item.id, {
-                category: item.category,
+                category,
                 concept,
                 total,
                 paid,
@@ -567,7 +580,7 @@ export function init(state, db) {
           });
 
           // Soporte Enter y Escape
-          const inputs = itemEl.querySelectorAll('input');
+          const inputs = itemEl.querySelectorAll('input, select');
           inputs.forEach(input => {
             input.addEventListener('keydown', async (evt) => {
               if (evt.key === 'Enter') {
