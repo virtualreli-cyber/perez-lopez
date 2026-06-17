@@ -28,7 +28,7 @@ export function render(state) {
       ${Card({
         className: 'md:col-span-8 min-h-[280px] flex flex-col justify-between relative overflow-hidden group',
         content: `
-          <div class="absolute inset-0 z-0 scale-100 group-hover:scale-105 transition-transform duration-700 bg-cover bg-center" style="background-image: url('./anniversary_trip.png');"></div>
+          <div class="absolute inset-0 z-0 scale-100 group-hover:scale-105 transition-transform duration-700 bg-cover bg-center" style="background-image: url('./honeymoon_trip.png');"></div>
           <div class="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-black/10 z-10"></div>
           
           <div class="relative z-20 flex justify-between items-start">
