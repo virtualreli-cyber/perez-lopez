@@ -62,9 +62,9 @@ const defaultWeddingTasks = [
 
 const defaultEvents = [
   { id: 1, title: 'Cena familiar de Lidia', date: '2026-06-20', time: '21:00', category: 'Familia' },
-  { id: 2, title: 'Cita con la modista (Boda)', date: '2026-06-25', time: '17:30', category: 'Planes' },
-  { id: 3, title: 'Revisión anual dentista Isra', date: '2026-07-02', time: '10:00', category: 'Médico' },
-  { id: 4, title: 'Escapada de fin de semana', date: '2026-07-15', time: '09:00', category: 'Viajes' },
+  { id: 2, title: 'Cita con la modista (Boda)', date: '2026-06-25', time: '17:30', category: 'Social' },
+  { id: 3, title: 'Revisión anual dentista Isra', date: '2026-07-02', time: '10:00', category: 'Salud' },
+  { id: 4, title: 'Escapada de fin de semana', date: '2026-07-15', time: '09:00', category: 'Otros' },
 ];
 
 const defaultFinancesAccounts = [
@@ -110,9 +110,9 @@ async function loadInitialData() {
     try {
       console.log('Intentando conectar con base de datos de Supabase de forma pública...');
       
-      // Crear una promesa de timeout de 3.5 segundos para evitar pantallas en blanco si la red se cuelga
+      // Crear una promesa de timeout de 7 segundos para evitar pantallas en blanco si la red se cuelga (útil para despertar base de datos pausada)
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout al conectar con Supabase (3.5s)')), 3500)
+        setTimeout(() => reject(new Error('Timeout al conectar con Supabase (7s)')), 7000)
       );
 
       await Promise.race([
@@ -343,7 +343,7 @@ async function loadInitialData() {
       ]);
       return;
     } catch (err) {
-      console.error('Error al conectar con Supabase, usando LocalStorage como fallback:', err);
+      console.warn('La conexión con Supabase no se pudo establecer en el tiempo límite (usando LocalStorage como fallback):', err.message || err);
     }
   }
 
@@ -1063,6 +1063,26 @@ export const db = {
 
     if (supabase) {
       const { error } = await supabase.from('eventos').delete().in('id', ids);
+      if (error) {
+        console.error('Error Supabase:', error);
+        state.events = originalEvents;
+        triggerRerender();
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  async updateEvent(id, { title, date, time, category }) {
+    const originalEvents = [...state.events];
+    state.events = state.events.map(e => e.id === id ? { ...e, title, date: date, time: time, category } : e);
+    triggerRerender();
+
+    if (supabase) {
+      const { error } = await supabase
+        .from('eventos')
+        .update({ titulo: title, fecha: date, hora: time, categoria: category })
+        .eq('id', id);
       if (error) {
         console.error('Error Supabase:', error);
         state.events = originalEvents;
