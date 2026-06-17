@@ -3,6 +3,7 @@ import { InputField } from '../../../components/InputField.js';
 import { Button } from '../../../components/Button.js';
 
 let editingItemId = null;
+let activeView = 'cards'; // 'cards' o 'table'
 
 /**
  * Renderiza la interfaz de Financiación y Presupuesto de la Boda.
@@ -166,14 +167,23 @@ export function render(state) {
       <div class="lg:col-span-8">
         ${Card({
           content: `
-            <div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 border-b border-outline-variant/20 pb-4">
               <h3 class="text-lg font-bold text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined">list_alt</span> Desglose de Gastos
               </h3>
+              <!-- Selector de Vista: Tarjetas vs Tabla Excel -->
+              <div class="flex bg-background/50 p-1 rounded-xl border border-outline-variant/20 select-none">
+                <button id="view-mode-cards-btn" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-sm">
+                  Tarjetas
+                </button>
+                <button id="view-mode-table-btn" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-outline hover:text-primary">
+                  Tabla Excel
+                </button>
+              </div>
             </div>
 
             <!-- Botón Nuevo Concepto colocado justo encima del desglose de gastos -->
-            <div class="flex justify-end mb-4">
+            <div id="new-concept-btn-container" class="flex justify-end mb-4">
               <button id="toggle-budget-form-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-md focus:ring-0 focus:outline-none shrink-0">
                 <span class="material-symbols-outlined text-[16px]" id="budget-form-btn-icon">add</span>
                 <span id="budget-form-btn-text">Nuevo Concepto</span>
@@ -223,8 +233,39 @@ export function render(state) {
               </form>
             </div>
             
-            <div id="budget-categories-container" class="space-y-6">
-              <!-- Renderizado dinámicamente -->
+            <!-- Contenedor Vista Tarjetas -->
+            <div id="view-cards-container">
+              <div id="budget-categories-container" class="space-y-6">
+                <!-- Renderizado dinámicamente -->
+              </div>
+            </div>
+
+            <!-- Contenedor Vista Tabla Excel -->
+            <div id="view-table-container" class="hidden">
+              <div class="overflow-auto max-h-[600px] border border-outline-variant/20 rounded-xl bg-background/20 shadow-inner custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead class="sticky top-0 bg-primary text-white z-10 shadow-sm">
+                    <tr>
+                      <th class="p-3 font-bold uppercase tracking-wider">Categoría</th>
+                      <th class="p-3 font-bold uppercase tracking-wider">Concepto / Proveedor</th>
+                      <th class="p-3 font-bold uppercase tracking-wider text-right">Presupuesto</th>
+                      <th class="p-3 font-bold uppercase tracking-wider text-right">Pagado</th>
+                      <th class="p-3 font-bold uppercase tracking-wider text-right">Pendiente</th>
+                      <th class="p-3 font-bold uppercase tracking-wider">Fecha Vto. Pago</th>
+                      <th class="p-3 font-bold uppercase tracking-wider">Importe Prox. Pago</th>
+                      <th class="p-3 font-bold uppercase tracking-wider text-center">Tipo</th>
+                    </tr>
+                  </thead>
+                  <tbody id="excel-table-rows" class="divide-y divide-outline-variant/15 bg-white">
+                    <!-- Renderizado dinámicamente -->
+                  </tbody>
+                  <tfoot class="sticky bottom-0 bg-surface border-t border-outline-variant/20 font-bold z-10 text-primary">
+                    <tr id="excel-table-totals-row">
+                      <!-- Totales de la tabla -->
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           `
         })}
@@ -499,12 +540,12 @@ export function init(state, db) {
                   <input type="text" id="edit-concept-${item.id}" value="${item.concept}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold" required />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Presupuesto (€)</label>
-                  <input type="number" step="0.01" id="edit-total-${item.id}" value="${item.total}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Presupuesto</label>
+                  <input type="text" id="edit-total-${item.id}" value="${formatCurrency(item.total)}" data-raw="${item.total}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Pagado (€)</label>
-                  <input type="number" step="0.01" id="edit-paid-${item.id}" value="${item.paid}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Pagado</label>
+                  <input type="text" id="edit-paid-${item.id}" value="${formatCurrency(item.paid)}" data-raw="${item.paid}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
                 </div>
                 <div class="md:col-span-1">
                   <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Vto. Pago</label>
@@ -536,13 +577,43 @@ export function init(state, db) {
 
           const saveBtn = itemEl.querySelector('.save-edit-btn');
           const cancelBtn = itemEl.querySelector('.cancel-edit-btn');
+          const inputTotal = itemEl.querySelector(`#edit-total-${item.id}`);
+          const inputPaid = itemEl.querySelector(`#edit-paid-${item.id}`);
+
+          if (inputTotal) {
+            inputTotal.addEventListener('focus', (e) => {
+              e.target.type = 'number';
+              e.target.value = e.target.dataset.raw || '';
+            });
+            inputTotal.addEventListener('blur', (e) => {
+              const num = parseFloat(e.target.value) || 0;
+              e.target.dataset.raw = num;
+              e.target.type = 'text';
+              e.target.value = formatCurrency(num);
+            });
+          }
+
+          if (inputPaid) {
+            inputPaid.addEventListener('focus', (e) => {
+              e.target.type = 'number';
+              e.target.value = e.target.dataset.raw || '';
+            });
+            inputPaid.addEventListener('blur', (e) => {
+              const num = parseFloat(e.target.value) || 0;
+              e.target.dataset.raw = num;
+              e.target.type = 'text';
+              e.target.value = formatCurrency(num);
+            });
+          }
 
           saveBtn.addEventListener('click', async (e) => {
             e.currentTarget.blur();
             const category = itemEl.querySelector(`#edit-category-${item.id}`).value;
             const concept = itemEl.querySelector(`#edit-concept-${item.id}`).value.trim();
-            const total = parseFloat(itemEl.querySelector(`#edit-total-${item.id}`).value) || 0;
-            const paid = parseFloat(itemEl.querySelector(`#edit-paid-${item.id}`).value) || 0;
+            
+            const total = parseFloat(inputTotal.type === 'number' ? inputTotal.value : inputTotal.dataset.raw) || 0;
+            const paid = parseFloat(inputPaid.type === 'number' ? inputPaid.value : inputPaid.dataset.raw) || 0;
+            
             const nextDate = itemEl.querySelector(`#edit-next-date-${item.id}`).value.trim();
             const nextAmount = itemEl.querySelector(`#edit-next-amount-${item.id}`).value.trim();
             const isGift = itemEl.querySelector(`#edit-is-gift-${item.id}`).checked;
@@ -586,7 +657,7 @@ export function init(state, db) {
           // MODO LECTURA NORMAL (Visualmente individualizados como tarjetas con separación clara)
           const itemPending = Math.max(item.total - item.paid, 0);
           itemEl.innerHTML = `
-            <div class="relative flex flex-col md:flex-row md:items-center justify-between p-3.5 md:p-4 pr-12 md:pr-16 hover:bg-white hover:border-l-primary hover:shadow-linen transition-all duration-200 rounded-xl group gap-3 md:gap-4 border border-outline-variant/20 border-l-4 border-l-primary/30 bg-background/20 mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div class="relative flex flex-col md:flex-row md:items-center justify-between p-3.5 md:p-4 pr-12 md:pr-16 hover:bg-white hover:border-primary/50 hover:shadow-linen transition-all duration-200 rounded-xl group gap-3 md:gap-4 border border-outline-variant/20 bg-background/20 mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <div class="flex-1 min-w-0 pr-4 md:pr-0">
                 <div class="flex items-center gap-2.5 flex-wrap">
                   <span class="font-bold text-sm text-primary cursor-pointer hover:underline item-concept-click" title="Clic para editar">${item.concept}</span>
@@ -596,7 +667,7 @@ export function init(state, db) {
                   <span>Próximo pago: <strong class="text-primary">${item.nextPaymentDate || 'N/A'}</strong> ${item.nextPaymentAmount ? `(${formatNextPaymentAmount(item.nextPaymentAmount)})` : ''}</span>
                 </div>
               </div>
-              <div class="grid grid-cols-3 md:flex md:items-center gap-2 md:gap-6 text-right shrink-0">
+              <div class="grid grid-cols-3 md:flex md:items-center gap-3 md:gap-6 text-center md:text-right shrink-0 mt-3.5 md:mt-0">
                 <div class="md:w-24">
                   <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
                   <span class="text-sm font-bold text-primary">${formatCurrency(item.total)}</span>
@@ -649,6 +720,8 @@ export function init(state, db) {
     renderKPIs();
     renderBanquete();
     renderBudgetList();
+    renderExcelTable();
+    switchView(activeView);
   };
 
   // Sincronizar Invitados y Catering Cost Pax
@@ -742,6 +815,112 @@ export function init(state, db) {
 
       await db.addWeddingBudgetItem(item);
     });
+  }
+
+  // Helper para alternar entre Vista Tarjetas y Vista Tabla Excel
+  const switchView = (viewName) => {
+    activeView = viewName;
+    const cardsBtn = document.getElementById('view-mode-cards-btn');
+    const tableBtn = document.getElementById('view-mode-table-btn');
+    const cardsContainer = document.getElementById('view-cards-container');
+    const tableContainer = document.getElementById('view-table-container');
+    const formBtnContainer = document.getElementById('new-concept-btn-container');
+    const formContainer = document.getElementById('add-budget-form-container');
+
+    if (!cardsBtn || !tableBtn || !cardsContainer || !tableContainer) return;
+
+    if (viewName === 'cards') {
+      cardsBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-sm';
+      tableBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-outline hover:text-primary';
+      cardsContainer.classList.remove('hidden');
+      tableContainer.classList.add('hidden');
+      if (formBtnContainer) formBtnContainer.classList.remove('hidden');
+    } else {
+      tableBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-sm';
+      cardsBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-outline hover:text-primary';
+      tableContainer.classList.remove('hidden');
+      cardsContainer.classList.add('hidden');
+      if (formBtnContainer) formBtnContainer.classList.add('hidden');
+      if (formContainer) formContainer.classList.add('hidden');
+      
+      const btnIcon = document.getElementById('budget-form-btn-icon');
+      const btnText = document.getElementById('budget-form-btn-text');
+      if (btnIcon && btnText) {
+        btnIcon.innerText = 'add';
+        btnText.innerText = 'Nuevo Concepto';
+      }
+    }
+  };
+
+  // Renderizador de la Tabla Excel (Solo Lectura)
+  const renderExcelTable = () => {
+    const tbody = document.getElementById('excel-table-rows');
+    const tfoot = document.getElementById('excel-table-totals-row');
+    if (!tbody || !tfoot) return;
+
+    const budget = getFilteredBudget();
+
+    if (budget.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="p-4 text-center text-outline font-semibold">No hay conceptos registrados.</td>
+        </tr>
+      `;
+      tfoot.innerHTML = '';
+      return;
+    }
+
+    const sortedBudget = [...budget].sort((a, b) => {
+      const catComp = a.category.localeCompare(b.category);
+      if (catComp !== 0) return catComp;
+      return a.concept.localeCompare(b.concept);
+    });
+
+    tbody.innerHTML = sortedBudget.map((item, idx) => {
+      const pending = Math.max(item.total - item.paid, 0);
+      const isAlt = idx % 2 === 1;
+      const rowBg = isAlt ? 'bg-background/5' : 'bg-white';
+      
+      return `
+        <tr class="${rowBg} hover:bg-primary/5 transition-all border-b border-outline-variant/10">
+          <td class="p-3 font-bold text-primary uppercase text-[10px] tracking-wider">${item.category}</td>
+          <td class="p-3 font-semibold text-charcoal max-w-[200px] truncate" title="${item.concept}">${item.concept}</td>
+          <td class="p-3 text-right font-semibold text-charcoal">${formatCurrency(item.total)}</td>
+          <td class="p-3 text-right font-semibold text-success">${formatCurrency(item.paid)}</td>
+          <td class="p-3 text-right font-semibold text-error">${formatCurrency(pending)}</td>
+          <td class="p-3 text-outline">${item.nextPaymentDate || '-'}</td>
+          <td class="p-3 text-outline">${formatNextPaymentAmount(item.nextPaymentAmount) || '-'}</td>
+          <td class="p-3 text-center">
+            ${item.isGift 
+              ? '<span class="text-[9px] bg-accent/10 text-accent font-bold px-2 py-0.5 rounded-full border border-accent/20">Regalo</span>' 
+              : '<span class="text-[9px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full border border-primary/20">Pareja</span>'
+            }
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const totalGlobal = budget.reduce((sum, item) => sum + item.total, 0);
+    const totalPaid = budget.reduce((sum, item) => sum + item.paid, 0);
+    const totalPending = Math.max(totalGlobal - totalPaid, 0);
+
+    tfoot.innerHTML = `
+      <td colspan="2" class="p-3 text-primary font-black uppercase text-[10px] tracking-wider">TOTAL GENERAL</td>
+      <td class="p-3 text-right font-black text-primary">${formatCurrency(totalGlobal)}</td>
+      <td class="p-3 text-right font-black text-success">${formatCurrency(totalPaid)}</td>
+      <td class="p-3 text-right font-black text-error">${formatCurrency(totalPending)}</td>
+      <td colspan="3" class="p-3 text-outline/50 text-[10px] font-normal text-right">Valores acumulados (incluye regalos)</td>
+    `;
+  };
+
+  // Listeners para el cambio de vista
+  const cardsBtn = document.getElementById('view-mode-cards-btn');
+  const tableBtn = document.getElementById('view-mode-table-btn');
+  if (cardsBtn) {
+    cardsBtn.addEventListener('click', () => switchView('cards'));
+  }
+  if (tableBtn) {
+    tableBtn.addEventListener('click', () => switchView('table'));
   }
 
   renderAll();
