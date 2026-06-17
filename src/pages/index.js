@@ -110,227 +110,237 @@ async function loadInitialData() {
     try {
       console.log('Intentando conectar con base de datos de Supabase de forma pública...');
       
-      // 1. Obtener Pareja
-      let { data: parejas, error: parejaErr } = await supabase.from('parejas').select('id').limit(1);
-      if (parejaErr) throw parejaErr;
-      
-      if (!parejas || parejas.length === 0) {
-        const { data: newPareja, error: insErr } = await supabase
-          .from('parejas')
-          .insert({ nombre_1: 'Isra', nombre_2: 'Lidia', plan_suscripcion: 'Premium' })
-          .select()
-          .single();
-        if (insErr) throw insErr;
-        state.parejaId = newPareja.id;
-      } else {
-        state.parejaId = parejas[0].id;
-      }
+      // Crear una promesa de timeout de 3.5 segundos para evitar pantallas en blanco si la red se cuelga
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout al conectar con Supabase (3.5s)')), 3500)
+      );
 
-      // 2. Cargar Configuración de Módulos (Tratando de unificar compatibilidad)
-      let { data: modulos, error: modErr } = await supabase.from('modulos_config').select('*').order('id', { ascending: true });
-      if (modErr) throw modErr;
-      
-      const keyToHash = {
-        dashboard: '#/dashboard',
-        boda: '#/boda/tareas',
-        hogar: '#/hogar/compras',
-        finanzas: '#/finanzas/resumen',
-        eventos: '#/eventos'
-      };
+      await Promise.race([
+        (async () => {
+          // 1. Obtener Pareja
+          let { data: parejas, error: parejaErr } = await supabase.from('parejas').select('id').limit(1);
+          if (parejaErr) throw parejaErr;
+          
+          if (!parejas || parejas.length === 0) {
+            const { data: newPareja, error: insErr } = await supabase
+              .from('parejas')
+              .insert({ nombre_1: 'Isra', nombre_2: 'Lidia', plan_suscripcion: 'Premium' })
+              .select()
+              .single();
+            if (insErr) throw insErr;
+            state.parejaId = newPareja.id;
+          } else {
+            state.parejaId = parejas[0].id;
+          }
 
-      if (!modulos || modulos.length === 0) {
-        const { data: initMods, error: initModsErr } = await supabase
-          .from('modulos_config')
-          .insert(defaultModulesConfig.map(m => ({
-            key_modulo: m.key,
-            nombre_menu: m.label,
-            icono: m.icon,
-            ruta_url: m.path,
-            activo: m.activo
-          })))
-          .select();
-        if (initModsErr) throw initModsErr;
-        state.modulesConfig = initMods.map(m => ({
-          key: m.key_modulo, label: m.nombre_menu, icon: m.icono, path: keyToHash[m.key_modulo] || m.ruta_url, activo: m.activo
-        }));
-      } else {
-        const newModulesMap = {
-          dashboard: { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '#/dashboard', activo: true },
-          wedding: { key: 'boda', label: 'Boda', icon: 'celebration', path: '#/boda/tareas', activo: true },
-          boda: { key: 'boda', label: 'Boda', icon: 'celebration', path: '#/boda/tareas', activo: true },
-          compra: { key: 'hogar', label: 'Hogar', icon: 'home', path: '#/hogar/compras', activo: true },
-          hogar: { key: 'hogar', label: 'Hogar', icon: 'home', path: '#/hogar/compras', activo: true },
-          finance: { key: 'finanzas', label: 'Finanzas', icon: 'payments', path: '#/finanzas/resumen', activo: true },
-          finanzas: { key: 'finanzas', label: 'Finanzas', icon: 'payments', path: '#/finanzas/resumen', activo: true },
-          events: { key: 'eventos', label: 'Eventos', icon: 'event', path: '#/eventos', activo: true },
-          eventos: { key: 'eventos', label: 'Eventos', icon: 'event', path: '#/eventos', activo: true }
-        };
+          // 2. Cargar Configuración de Módulos (Tratando de unificar compatibilidad)
+          let { data: modulos, error: modErr } = await supabase.from('modulos_config').select('*').order('id', { ascending: true });
+          if (modErr) throw modErr;
+          
+          const keyToHash = {
+            dashboard: '#/dashboard',
+            boda: '#/boda/tareas',
+            hogar: '#/hogar/compras',
+            finanzas: '#/finanzas/resumen',
+            eventos: '#/eventos'
+          };
 
-        const uniqueModules = {};
-        modulos.forEach(m => {
-          const mapped = newModulesMap[m.key_modulo];
-          if (mapped) {
-            uniqueModules[mapped.key] = {
-              ...mapped,
-              activo: uniqueModules[mapped.key] ? uniqueModules[mapped.key].activo && m.activo : m.activo
+          if (!modulos || modulos.length === 0) {
+            const { data: initMods, error: initModsErr } = await supabase
+              .from('modulos_config')
+              .insert(defaultModulesConfig.map(m => ({
+                key_modulo: m.key,
+                nombre_menu: m.label,
+                icono: m.icon,
+                ruta_url: m.path,
+                activo: m.activo
+              })))
+              .select();
+            if (initModsErr) throw initModsErr;
+            state.modulesConfig = initMods.map(m => ({
+              key: m.key_modulo, label: m.nombre_menu, icon: m.icono, path: keyToHash[m.key_modulo] || m.ruta_url, activo: m.activo
+            }));
+          } else {
+            const newModulesMap = {
+              dashboard: { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '#/dashboard', activo: true },
+              wedding: { key: 'boda', label: 'Boda', icon: 'celebration', path: '#/boda/tareas', activo: true },
+              boda: { key: 'boda', label: 'Boda', icon: 'celebration', path: '#/boda/tareas', activo: true },
+              compra: { key: 'hogar', label: 'Hogar', icon: 'home', path: '#/hogar/compras', activo: true },
+              hogar: { key: 'hogar', label: 'Hogar', icon: 'home', path: '#/hogar/compras', activo: true },
+              finance: { key: 'finanzas', label: 'Finanzas', icon: 'payments', path: '#/finanzas/resumen', activo: true },
+              finanzas: { key: 'finanzas', label: 'Finanzas', icon: 'payments', path: '#/finanzas/resumen', activo: true },
+              events: { key: 'eventos', label: 'Eventos', icon: 'event', path: '#/eventos', activo: true },
+              eventos: { key: 'eventos', label: 'Eventos', icon: 'event', path: '#/eventos', activo: true }
+            };
+
+            const uniqueModules = {};
+            modulos.forEach(m => {
+              const mapped = newModulesMap[m.key_modulo];
+              if (mapped) {
+                uniqueModules[mapped.key] = {
+                  ...mapped,
+                  activo: uniqueModules[mapped.key] ? uniqueModules[mapped.key].activo && m.activo : m.activo
+                };
+              }
+            });
+
+            // Aseguramos los 5 principales
+            ['dashboard', 'boda', 'hogar', 'finanzas', 'eventos'].forEach(key => {
+              if (!uniqueModules[key]) {
+                const def = defaultModulesConfig.find(dm => dm.key === key);
+                if (def) uniqueModules[key] = { ...def };
+              }
+            });
+
+            state.modulesConfig = Object.values(uniqueModules);
+          }
+
+          // 3. Cargar compras
+          let { data: comprasData, error: compErr } = await supabase
+            .from('compras')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (compErr) throw compErr;
+          state.shopping = comprasData.map(c => ({
+            id: c.id, name: c.nombre, qty: c.cantidad, category: c.categoria, completed: c.completado
+          }));
+
+          // 4. Tareas de boda
+          let { data: tareasData, error: tarErr } = await supabase
+            .from('boda_tareas')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (tarErr) throw tarErr;
+          state.weddingTasks = tareasData.map(t => ({
+            id: t.id, title: t.titulo, category: t.categoria, completed: t.completado
+          }));
+
+          // 5. Cuentas Bancarias
+          let { data: cuentasData, error: cErr } = await supabase
+            .from('finanzas_cuentas')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (!cErr && cuentasData) {
+            state.financesAccounts = cuentasData.map(c => ({
+              id: c.id, name: c.nombre, initialBalance: parseFloat(c.saldo_inicial), color: c.color
+            }));
+          } else {
+            state.financesAccounts = [...defaultFinancesAccounts];
+          }
+
+          // 6. Categorías Financieras
+          let { data: catFinData, error: catFinErr } = await supabase
+            .from('finanzas_categorias')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (!catFinErr && catFinData) {
+            state.financesCategories = catFinData.map(c => ({
+              id: c.id, name: c.nombre, type: c.tipo, icon: c.icono
+            }));
+          } else {
+            state.financesCategories = [...defaultFinancesCategories];
+          }
+
+          // 7. Subcategorías Financieras
+          let { data: subcatData, error: subcatErr } = await supabase
+            .from('finanzas_subcategorias')
+            .select('*')
+            .order('id', { ascending: true });
+          if (!subcatErr && subcatData) {
+            state.financesSubcategories = subcatData.map(s => ({
+              id: s.id, categoryId: s.categoria_id, name: s.nombre
+            }));
+          } else {
+            state.financesSubcategories = [...defaultFinancesSubcategories];
+          }
+
+          // 8. Transacciones Financieras
+          let { data: transData, error: tErr } = await supabase
+            .from('finanzas_transacciones')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('fecha', { ascending: false });
+          if (!tErr && transData) {
+            state.financesTransactions = transData.map(t => ({
+              id: t.id, accountId: t.cuenta_id, categoryId: t.categoria_id, subcategoryId: t.subcategoria_id,
+              type: t.tipo, desc: t.descripcion, amount: parseFloat(t.monto), payer: t.pagador, date: t.fecha
+            }));
+          } else {
+            state.financesTransactions = [...defaultFinancesTransactions];
+          }
+
+          // Sincronizar state.expenses para compatibilidad
+          state.expenses = state.financesTransactions.filter(t => t.type === 'gasto').map(t => ({
+            id: t.id, desc: t.desc, amount: t.amount, payer: t.payer, date: t.date
+          }));
+
+          // 9. Eventos
+          let { data: eventosData, error: evtErr } = await supabase
+            .from('eventos')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('fecha', { ascending: true });
+          if (evtErr) throw evtErr;
+          state.events = eventosData.map(e => ({
+            id: e.id, title: e.titulo, date: e.fecha, time: e.hora, category: e.categoria
+          }));
+
+          // 10. Metas de Ahorro
+          let { data: ahorrosData, error: ahorrosErr } = await supabase
+            .from('ahorros_metas')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .eq('activo', true)
+            .limit(1);
+          if (!ahorrosErr && ahorrosData && ahorrosData.length > 0) {
+            state.savingsGoal = {
+              id: ahorrosData[0].id,
+              name: ahorrosData[0].nombre,
+              target: parseFloat(ahorrosData[0].monto_objetivo),
+              current: parseFloat(ahorrosData[0].monto_actual),
+              deadline: ahorrosData[0].fecha_limite
             };
           }
-        });
 
-        // Aseguramos los 5 principales
-        ['dashboard', 'boda', 'hogar', 'finanzas', 'eventos'].forEach(key => {
-          if (!uniqueModules[key]) {
-            const def = defaultModulesConfig.find(dm => dm.key === key);
-            if (def) uniqueModules[key] = { ...def };
+          // 11. Tareas del Viaje
+          let { data: viajeTareasData, error: vtErr } = await supabase
+            .from('viaje_tareas')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (!vtErr) {
+            state.tripTasks = viajeTareasData.map(t => ({
+              id: t.id, title: t.titulo, category: t.categoria || 'Otros', completed: t.completado
+            }));
           }
-        });
 
-        state.modulesConfig = Object.values(uniqueModules);
-      }
+          // 12. Categorías de la Lista de la Compra
+          let { data: catData, error: catErr } = await supabase
+            .from('compra_categorias')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (!catErr && catData) {
+            state.shoppingCategories = catData.map(c => ({
+              id: c.id, name: c.nombre
+            }));
+          } else {
+            state.shoppingCategories = [
+              { id: 1, name: 'Alimentación' },
+              { id: 2, name: 'Frutería' },
+              { id: 3, name: 'Hogar' },
+              { id: 4, name: 'Otros' }
+            ];
+          }
 
-      // 3. Cargar compras
-      let { data: comprasData, error: compErr } = await supabase
-        .from('compras')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('id', { ascending: true });
-      if (compErr) throw compErr;
-      state.shopping = comprasData.map(c => ({
-        id: c.id, name: c.nombre, qty: c.cantidad, category: c.categoria, completed: c.completado
-      }));
-
-      // 4. Tareas de boda
-      let { data: tareasData, error: tarErr } = await supabase
-        .from('boda_tareas')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('id', { ascending: true });
-      if (tarErr) throw tarErr;
-      state.weddingTasks = tareasData.map(t => ({
-        id: t.id, title: t.titulo, category: t.categoria, completed: t.completado
-      }));
-
-      // 5. Cuentas Bancarias
-      let { data: cuentasData, error: cErr } = await supabase
-        .from('finanzas_cuentas')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('id', { ascending: true });
-      if (!cErr && cuentasData) {
-        state.financesAccounts = cuentasData.map(c => ({
-          id: c.id, name: c.nombre, initialBalance: parseFloat(c.saldo_inicial), color: c.color
-        }));
-      } else {
-        state.financesAccounts = [...defaultFinancesAccounts];
-      }
-
-      // 6. Categorías Financieras
-      let { data: catFinData, error: catFinErr } = await supabase
-        .from('finanzas_categorias')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('id', { ascending: true });
-      if (!catFinErr && catFinData) {
-        state.financesCategories = catFinData.map(c => ({
-          id: c.id, name: c.nombre, type: c.tipo, icon: c.icono
-        }));
-      } else {
-        state.financesCategories = [...defaultFinancesCategories];
-      }
-
-      // 7. Subcategorías Financieras
-      let { data: subcatData, error: subcatErr } = await supabase
-        .from('finanzas_subcategorias')
-        .select('*')
-        .order('id', { ascending: true });
-      if (!subcatErr && subcatData) {
-        state.financesSubcategories = subcatData.map(s => ({
-          id: s.id, categoryId: s.categoria_id, name: s.nombre
-        }));
-      } else {
-        state.financesSubcategories = [...defaultFinancesSubcategories];
-      }
-
-      // 8. Transacciones Financieras
-      let { data: transData, error: tErr } = await supabase
-        .from('finanzas_transacciones')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('fecha', { ascending: false });
-      if (!tErr && transData) {
-        state.financesTransactions = transData.map(t => ({
-          id: t.id, accountId: t.cuenta_id, categoryId: t.categoria_id, subcategoryId: t.subcategoria_id,
-          type: t.tipo, desc: t.descripcion, amount: parseFloat(t.monto), payer: t.pagador, date: t.fecha
-        }));
-      } else {
-        state.financesTransactions = [...defaultFinancesTransactions];
-      }
-
-      // Sincronizar state.expenses para compatibilidad
-      state.expenses = state.financesTransactions.filter(t => t.type === 'gasto').map(t => ({
-        id: t.id, desc: t.desc, amount: t.amount, payer: t.payer, date: t.date
-      }));
-
-      // 9. Eventos
-      let { data: eventosData, error: evtErr } = await supabase
-        .from('eventos')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('fecha', { ascending: true });
-      if (evtErr) throw evtErr;
-      state.events = eventosData.map(e => ({
-        id: e.id, title: e.titulo, date: e.fecha, time: e.hora, category: e.categoria
-      }));
-
-      // 10. Metas de Ahorro
-      let { data: ahorrosData, error: ahorrosErr } = await supabase
-        .from('ahorros_metas')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .eq('activo', true)
-        .limit(1);
-      if (!ahorrosErr && ahorrosData && ahorrosData.length > 0) {
-        state.savingsGoal = {
-          id: ahorrosData[0].id,
-          name: ahorrosData[0].nombre,
-          target: parseFloat(ahorrosData[0].monto_objetivo),
-          current: parseFloat(ahorrosData[0].monto_actual),
-          deadline: ahorrosData[0].fecha_limite
-        };
-      }
-
-      // 11. Tareas del Viaje
-      let { data: viajeTareasData, error: vtErr } = await supabase
-        .from('viaje_tareas')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('id', { ascending: true });
-      if (!vtErr) {
-        state.tripTasks = viajeTareasData.map(t => ({
-          id: t.id, title: t.titulo, completed: t.completado
-        }));
-      }
-
-      // 12. Categorías de la Lista de la Compra
-      let { data: catData, error: catErr } = await supabase
-        .from('compra_categorias')
-        .select('*')
-        .eq('pareja_id', state.parejaId)
-        .order('id', { ascending: true });
-      if (!catErr && catData) {
-        state.shoppingCategories = catData.map(c => ({
-          id: c.id, name: c.nombre
-        }));
-      } else {
-        state.shoppingCategories = [
-          { id: 1, name: 'Alimentación' },
-          { id: 2, name: 'Frutería' },
-          { id: 3, name: 'Hogar' },
-          { id: 4, name: 'Otros' }
-        ];
-      }
-
-      console.log('Datos públicos cargados correctamente desde Supabase.');
+          console.log('Datos públicos cargados correctamente desde Supabase.');
+        })(),
+        timeoutPromise
+      ]);
       return;
     } catch (err) {
       console.error('Error al conectar con Supabase, usando LocalStorage como fallback:', err);
@@ -345,11 +355,11 @@ async function loadInitialData() {
   state.savingsGoal = JSON.parse(localStorage.getItem('state_savings_goal')) || { id: null, name: 'Ahorros Viaje', target: 5000, current: 4250, deadline: '2026-08-16' };
   
   const defaultTripTasks = [
-    { id: 1, title: 'Reservar vuelos internacionales', completed: true },
-    { id: 2, title: 'Solicitar visado para Sri Lanka', completed: false },
-    { id: 3, title: 'Contratar seguro médico internacional', completed: false },
-    { id: 4, title: 'Reservar resorts sobre el agua en Maldivas', completed: true },
-    { id: 5, title: 'Preparar adaptador de corriente y botiquín', completed: false }
+    { id: 1, title: 'Reservar vuelos internacionales', category: 'Reservas', completed: true },
+    { id: 2, title: 'Solicitar visado para Sri Lanka', category: 'Documentos', completed: false },
+    { id: 3, title: 'Contratar seguro médico internacional', category: 'Documentos', completed: false },
+    { id: 4, title: 'Reservar resorts sobre el agua en Maldivas', category: 'Reservas', completed: true },
+    { id: 5, title: 'Preparar adaptador de corriente y botiquín', category: 'Equipaje', completed: false }
   ];
   state.tripTasks = JSON.parse(localStorage.getItem('state_trip_tasks')) || defaultTripTasks;
   state.shoppingCategories = JSON.parse(localStorage.getItem('state_shopping_categories')) || [
@@ -588,6 +598,33 @@ export const db = {
       if (error) {
         console.error('Error Supabase:', error);
         state.weddingTasks = state.weddingTasks.map(t => t.id === id ? { ...t, completed: !completed } : t);
+        triggerRerender();
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  async updateWeddingTask(id, updates) {
+    const originalTask = state.weddingTasks.find(t => t.id === id);
+    if (!originalTask) return;
+
+    state.weddingTasks = state.weddingTasks.map(t => t.id === id ? { ...t, ...updates } : t);
+    triggerRerender();
+
+    if (supabase) {
+      const dbUpdates = {};
+      if (updates.title !== undefined) dbUpdates.titulo = updates.title;
+      if (updates.category !== undefined) dbUpdates.categoria = updates.category;
+      if (updates.completed !== undefined) dbUpdates.completado = updates.completed;
+
+      const { error } = await supabase
+        .from('boda_tareas')
+        .update(dbUpdates)
+        .eq('id', id);
+      if (error) {
+        console.error('Error al actualizar en Supabase:', error);
+        state.weddingTasks = state.weddingTasks.map(t => t.id === id ? originalTask : t);
         triggerRerender();
       }
     } else {
@@ -1087,9 +1124,9 @@ export const db = {
   },
 
   // --- TAREAS DE VIAJE ---
-  async addTripTask(title) {
+  async addTripTask(title, category = 'Otros') {
     const tempId = -Date.now();
-    const newTask = { id: tempId, title, completed: false };
+    const newTask = { id: tempId, title, category, completed: false };
 
     state.tripTasks.push(newTask);
     triggerRerender();
@@ -1098,11 +1135,11 @@ export const db = {
       try {
         const { data, error } = await supabase
           .from('viaje_tareas')
-          .insert({ pareja_id: state.parejaId, titulo: title, completado: false })
+          .insert({ pareja_id: state.parejaId, titulo: title, categoria: category, completado: false })
           .select()
           .single();
         if (!error && data) {
-          state.tripTasks = state.tripTasks.map(t => t.id === tempId ? { id: data.id, title: data.titulo, completed: data.completado } : t);
+          state.tripTasks = state.tripTasks.map(t => t.id === tempId ? { id: data.id, title: data.titulo, category: data.categoria || 'Otros', completed: data.completado } : t);
           return;
         }
         console.error('Error Supabase:', error);
@@ -1138,6 +1175,33 @@ export const db = {
     }
   },
 
+  async updateTripTask(id, updates) {
+    const originalTask = state.tripTasks.find(t => t.id === id);
+    if (!originalTask) return;
+
+    state.tripTasks = state.tripTasks.map(t => t.id === id ? { ...t, ...updates } : t);
+    triggerRerender();
+
+    if (supabase) {
+      const dbUpdates = {};
+      if (updates.title !== undefined) dbUpdates.titulo = updates.title;
+      if (updates.category !== undefined) dbUpdates.categoria = updates.category;
+      if (updates.completed !== undefined) dbUpdates.completado = updates.completed;
+
+      const { error } = await supabase
+        .from('viaje_tareas')
+        .update(dbUpdates)
+        .eq('id', id);
+      if (error) {
+        console.error('Error al actualizar en Supabase:', error);
+        state.tripTasks = state.tripTasks.map(t => t.id === id ? originalTask : t);
+        triggerRerender();
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
   async deleteTripTask(id) {
     const originalTask = state.tripTasks.find(t => t.id === id);
     state.tripTasks = state.tripTasks.filter(t => t.id !== id);
@@ -1151,6 +1215,23 @@ export const db = {
           state.tripTasks.push(originalTask);
           triggerRerender();
         }
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  async deleteTripTasks(ids) {
+    const originalTasks = [...state.tripTasks];
+    state.tripTasks = state.tripTasks.filter(t => !ids.includes(t.id));
+    triggerRerender();
+
+    if (supabase) {
+      const { error } = await supabase.from('viaje_tareas').delete().in('id', ids);
+      if (error) {
+        console.error('Error Supabase:', error);
+        state.tripTasks = originalTasks;
+        triggerRerender();
       }
     } else {
       saveToLocalStorage();
@@ -1625,6 +1706,7 @@ function subscribeToRealtime() {
           state.tripTasks.push({
             id: newRow.id,
             title: newRow.titulo,
+            category: newRow.categoria || 'Otros',
             completed: newRow.completado
           });
         }
@@ -1632,6 +1714,7 @@ function subscribeToRealtime() {
         state.tripTasks = state.tripTasks.map(t => t.id === newRow.id ? {
           ...t,
           title: newRow.titulo,
+          category: newRow.categoria || 'Otros',
           completed: newRow.completado
         } : t);
       } else if (eventType === 'DELETE') {

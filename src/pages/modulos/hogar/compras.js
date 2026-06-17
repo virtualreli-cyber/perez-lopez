@@ -33,12 +33,6 @@ export function render(state) {
         </div>
         
         <div class="flex flex-wrap items-center gap-2">
-          <!-- Botón de borrado múltiple -->
-          <button id="bulk-delete-shop-btn" class="hidden bg-error/10 hover:bg-error/20 text-error border border-error/20 font-bold text-xs px-4.5 py-2.5 rounded-full transition-all flex items-center gap-1.5 shadow-sm select-none focus:ring-0 focus:outline-none">
-            <span class="material-symbols-outlined text-[16px]">delete_sweep</span>
-            <span>Eliminar Seleccionados (<span id="bulk-delete-shop-count">0</span>)</span>
-          </button>
-
           <button id="toggle-shop-form-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 shadow-md focus:ring-0 focus:outline-none">
             <span class="material-symbols-outlined text-[16px]" id="shop-form-btn-icon">add</span>
             <span id="shop-form-btn-text">Añadir Artículo</span>
@@ -103,9 +97,17 @@ export function render(state) {
         content: `
           <div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
             <span id="shopping-stats-text" class="text-sm font-bold text-primary">0 artículos en total</span>
-            <button id="clear-completed-btn" class="text-xs text-error hover:underline font-bold flex items-center gap-1 select-none focus:ring-0 focus:outline-none">
-              <span class="material-symbols-outlined text-xs">delete</span> Limpiar completados
-            </button>
+            <div class="flex items-center gap-2.5">
+              <!-- Botón de borrado múltiple -->
+              <button id="bulk-delete-shop-btn" class="hidden bg-error/10 hover:bg-error/20 text-error border border-error/20 font-bold text-[10px] px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-sm select-none focus:ring-0 focus:outline-none">
+                <span class="material-symbols-outlined text-[14px]">delete_sweep</span>
+                <span>Eliminar (<span id="bulk-delete-shop-count">0</span>)</span>
+              </button>
+              
+              <button id="clear-completed-btn" class="text-xs text-error hover:underline font-bold flex items-center gap-1 select-none focus:ring-0 focus:outline-none">
+                <span class="material-symbols-outlined text-xs">delete</span> Limpiar completados
+              </button>
+            </div>
           </div>
 
           <ul id="shopping-items-list" class="divide-y divide-outline-variant/10 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">

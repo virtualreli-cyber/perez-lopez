@@ -12,29 +12,6 @@ export function render(state) {
   const totalWeddingTasks = state.weddingTasks.length;
   const completedWeddingTasks = state.weddingTasks.filter(t => t.completed).length;
 
-  // Filtrar gastos de boda
-  const isWeddingExpense = (exp) => {
-    const desc = exp.desc.toLowerCase();
-    return desc.includes('boda') || desc.includes('vestido') || desc.includes('banquete') || desc.includes('fotógrafo') || desc.includes('alianza') || desc.includes('flores');
-  };
-  const weddingExpenses = state.expenses.filter(isWeddingExpense);
-  const calculatedWeddingSpent = weddingExpenses.reduce((sum, e) => sum + e.amount, 0) + 12500;
-  const weddingBudgetPct = Math.min((calculatedWeddingSpent / 20000) * 100, 100).toFixed(0);
-
-  // Filtrar gastos del hogar y balance
-  const homeExpenses = state.expenses.filter(e => !isWeddingExpense(e));
-  const homeTotal = homeExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const israPaid = homeExpenses.filter(e => e.payer === 'Isra').reduce((sum, e) => sum + e.amount, 0);
-  const half = homeTotal / 2;
-  let balanceText = "Cuentas al día";
-  if (Math.abs(israPaid - half) >= 0.01) {
-    if (israPaid > half) {
-      balanceText = `Lidia debe: €${(israPaid - half).toFixed(2)}`;
-    } else {
-      balanceText = `Isra debe: €${((homeTotal - israPaid) - half).toFixed(2)}`;
-    }
-  }
-
   // Tareas de viaje pendientes
   const pendingTripTasks = state.tripTasks.filter(t => !t.completed).length;
 
@@ -51,7 +28,7 @@ export function render(state) {
       ${Card({
         className: 'md:col-span-8 min-h-[280px] flex flex-col justify-between relative overflow-hidden group',
         content: `
-          <div class="absolute inset-0 z-0 scale-100 group-hover:scale-105 transition-transform duration-700 bg-cover bg-center" style="background-image: url('./anniversary_trip.png');"></div>
+          <div class="absolute inset-0 z-0 scale-100 group-hover:scale-105 transition-transform duration-700 bg-cover bg-center" style="background-image: url('./honeymoon_trip.png');"></div>
           <div class="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-black/10 z-10"></div>
           
           <div class="relative z-20 flex justify-between items-start">
@@ -79,9 +56,12 @@ export function render(state) {
 
       <!-- Cuenta Atrás Boda -->
       ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between bg-surface',
+        className: 'md:col-span-4 flex flex-col justify-between bg-surface relative overflow-hidden',
         content: `
-          <div>
+          <!-- Marca de agua del Logo de Boda de fondo -->
+          <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-contain bg-no-repeat opacity-15 pointer-events-none" style="background-image: url('./logo_boda.png');"></div>
+
+          <div class="relative z-10 flex flex-col h-full justify-between">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-bold text-primary flex items-center gap-1.5 uppercase tracking-wider">
                 <span class="material-symbols-outlined text-accent">celebration</span> La Boda
@@ -89,40 +69,33 @@ export function render(state) {
               <span class="px-2.5 py-1 bg-accent-light text-accent rounded-full text-[10px] font-bold">Ago 15, 2026 — 18:30</span>
             </div>
             
-            <div class="grid grid-cols-4 gap-1.5 text-center mt-4">
-              <div class="bg-background rounded-lg py-2">
+            <div class="grid grid-cols-4 gap-1.5 text-center my-auto">
+              <div class="bg-background/80 backdrop-blur-sm rounded-lg py-2">
                 <span id="countdown-days" class="block text-lg font-bold text-primary">-</span>
                 <span class="text-[8px] text-outline uppercase font-semibold">Días</span>
               </div>
-              <div class="bg-background rounded-lg py-2">
+              <div class="bg-background/80 backdrop-blur-sm rounded-lg py-2">
                 <span id="countdown-hours" class="block text-lg font-bold text-primary">-</span>
                 <span class="text-[8px] text-outline uppercase font-semibold">Horas</span>
               </div>
-              <div class="bg-background rounded-lg py-2">
+              <div class="bg-background/80 backdrop-blur-sm rounded-lg py-2">
                 <span id="countdown-minutes" class="block text-lg font-bold text-primary">-</span>
                 <span class="text-[8px] text-outline uppercase font-semibold">Min</span>
               </div>
-              <div class="bg-background rounded-lg py-2">
+              <div class="bg-background/80 backdrop-blur-sm rounded-lg py-2">
                 <span id="countdown-seconds" class="block text-lg font-bold text-primary">-</span>
                 <span class="text-[8px] text-outline uppercase font-semibold">Seg</span>
               </div>
             </div>
           </div>
-
-          <div class="mt-4 pt-4 border-t border-outline-variant/10">
-            <a href="#/boda/tareas" class="w-full bg-primary hover:bg-primary-dark text-white font-semibold text-xs px-4 py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-[16px]">fact_check</span>
-              <span>Checklist de Boda</span>
-            </a>
-          </div>
         `
       })}
 
-      <!-- Bento Grid inferior para navegar a las subpáginas -->
+      <!-- Bento Grid inferior para navegar a las subpáginas (Diferenciadas sutilmente) -->
 
       <!-- Card Boda Tareas -->
       ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300',
+        className: 'md:col-span-3 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300 border-l-4 border-primary',
         content: `
           <div>
             <div class="flex items-center gap-2 mb-3">
@@ -130,13 +103,13 @@ export function render(state) {
                 <span class="material-symbols-outlined text-[20px]">fact_check</span>
               </div>
               <div>
-                <h4 class="text-xs font-bold text-outline uppercase tracking-wider">Boda</h4>
+                <h4 class="text-[10px] font-bold text-outline uppercase tracking-wider">Boda</h4>
                 <h3 class="text-sm font-bold text-primary">Checklist de Boda</h3>
               </div>
             </div>
             <p class="text-xs text-outline mt-2">Hitos y preparativos del gran día organizados en un checklist.</p>
             <div class="mt-4 flex items-center justify-between text-xs">
-              <span class="text-primary font-bold">${completedWeddingTasks} de ${totalWeddingTasks} listas</span>
+              <span class="text-primary font-bold">${completedWeddingTasks} de ${totalWeddingTasks} tareas</span>
               <span class="text-outline-variant font-medium">${totalWeddingTasks > 0 ? ((completedWeddingTasks/totalWeddingTasks)*100).toFixed(0) : 0}%</span>
             </div>
             <div class="w-full h-1.5 bg-outline-variant/30 mt-2 rounded-full overflow-hidden">
@@ -152,7 +125,7 @@ export function render(state) {
 
       <!-- Card Boda Viaje -->
       ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300',
+        className: 'md:col-span-3 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300 border-l-4 border-primary-light',
         content: `
           <div>
             <div class="flex items-center gap-2 mb-3">
@@ -160,14 +133,14 @@ export function render(state) {
                 <span class="material-symbols-outlined text-[20px]">luggage</span>
               </div>
               <div>
-                <h4 class="text-xs font-bold text-outline uppercase tracking-wider">Boda</h4>
+                <h4 class="text-[10px] font-bold text-outline uppercase tracking-wider">Boda</h4>
                 <h3 class="text-sm font-bold text-primary">Preparación Viaje</h3>
               </div>
             </div>
             <p class="text-xs text-outline mt-2">Checklist de pendientes de viaje e itinerario para Sri Lanka y Maldivas.</p>
             <div class="mt-4 flex items-center justify-between text-xs">
               <span class="text-primary font-bold">${pendingTripTasks} Tareas Pendientes</span>
-              <span class="px-2.5 py-0.5 bg-accent-light text-accent rounded-full text-[10px] font-bold">Luna de Miel</span>
+              <span class="px-2 py-0.5 bg-accent-light text-accent rounded-full text-[9px] font-bold">Luna de Miel</span>
             </div>
           </div>
           <a href="#/boda/viaje" class="mt-5 text-accent hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
@@ -177,47 +150,17 @@ export function render(state) {
         `
       })}
 
-      <!-- Card Boda Financiación -->
-      ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300',
-        content: `
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-primary-light/10 text-primary-light flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
-              </div>
-              <div>
-                <h4 class="text-xs font-bold text-outline uppercase tracking-wider">Boda</h4>
-                <h3 class="text-sm font-bold text-primary">Presupuesto Boda</h3>
-              </div>
-            </div>
-            <p class="text-xs text-outline mt-2">Control de costes y aportaciones económicas específicas para la boda.</p>
-            <div class="mt-4 flex items-center justify-between text-xs">
-              <span class="text-primary font-bold">Gastado: €${calculatedWeddingSpent.toLocaleString('es-ES')}</span>
-              <span class="text-outline-variant font-medium">${weddingBudgetPct}%</span>
-            </div>
-            <div class="w-full h-1.5 bg-outline-variant/30 mt-2 rounded-full overflow-hidden">
-              <div class="h-full bg-accent rounded-full" style="width: ${weddingBudgetPct}%"></div>
-            </div>
-          </div>
-          <a href="#/boda/financiacion" class="mt-5 text-accent hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
-            <span>Ver Presupuesto</span>
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </a>
-        `
-      })}
-
       <!-- Card Hogar Compras -->
       ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300',
+        className: 'md:col-span-3 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300 border-l-4 border-terracotta',
         content: `
           <div>
             <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
+              <div class="w-9 h-9 rounded-xl bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">shopping_basket</span>
               </div>
               <div>
-                <h4 class="text-xs font-bold text-outline uppercase tracking-wider">Hogar</h4>
+                <h4 class="text-[10px] font-bold text-outline uppercase tracking-wider">Hogar</h4>
                 <h3 class="text-sm font-bold text-primary">Lista Compra</h3>
               </div>
             </div>
@@ -226,35 +169,8 @@ export function render(state) {
               <span class="text-primary font-bold">${pendingShoppingCount} artículo${pendingShoppingCount !== 1 ? 's' : ''} pendiente${pendingShoppingCount !== 1 ? 's' : ''}</span>
             </div>
           </div>
-          <a href="#/hogar/compras" class="mt-5 text-accent hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
+          <a href="#/hogar/compras" class="mt-5 text-terracotta hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
             <span>Ver Lista Compra</span>
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </a>
-        `
-      })}
-
-      <!-- Card Hogar Finanzas -->
-      ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300',
-        content: `
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[20px]">payments</span>
-              </div>
-              <div>
-                <h4 class="text-xs font-bold text-outline uppercase tracking-wider">Hogar</h4>
-                <h3 class="text-sm font-bold text-primary">Finanzas Compartidas</h3>
-              </div>
-            </div>
-            <p class="text-xs text-outline mt-2">Control de gastos de casa divididos automáticamente al 50%.</p>
-            <div class="mt-4 flex items-center justify-between text-xs">
-              <span class="text-primary font-bold">Total: €${homeTotal.toFixed(2)}</span>
-              <span class="px-2 py-0.5 bg-primary/10 text-primary rounded text-[9px] font-bold">${balanceText}</span>
-            </div>
-          </div>
-          <a href="#/finanzas/resumen" class="mt-5 text-accent hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
-            <span>Ver Finanzas Compartidas</span>
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </a>
         `
@@ -262,15 +178,15 @@ export function render(state) {
 
       <!-- Card Eventos -->
       ${Card({
-        className: 'md:col-span-4 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300',
+        className: 'md:col-span-3 flex flex-col justify-between hover:shadow-linen-hover transition-all duration-300 border-l-4 border-wine',
         content: `
           <div>
             <div class="flex items-center gap-2 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-primary-light/10 text-primary-light flex items-center justify-center shrink-0">
+              <div class="w-9 h-9 rounded-xl bg-wine/10 text-wine flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">calendar_month</span>
               </div>
               <div>
-                <h4 class="text-xs font-bold text-outline uppercase tracking-wider">Eventos</h4>
+                <h4 class="text-[10px] font-bold text-outline uppercase tracking-wider">Eventos</h4>
                 <h3 class="text-sm font-bold text-primary">Citas y Eventos</h3>
               </div>
             </div>
@@ -279,7 +195,7 @@ export function render(state) {
               <!-- Cargado en init() -->
             </ul>
           </div>
-          <a href="#/eventos" class="mt-5 text-accent hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
+          <a href="#/eventos" class="mt-5 text-wine hover:text-primary transition-colors flex items-center gap-1 text-xs font-bold">
             <span>Ver Calendario</span>
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </a>
@@ -312,7 +228,7 @@ export function init(state, db) {
         const formattedDate = new Date(evt.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
         listEl.innerHTML += `
           <li class="flex items-center justify-between py-1 border-b border-outline-variant/10 last:border-0">
-            <span class="text-xs text-primary truncate max-w-[150px]">${evt.title}</span>
+            <span class="text-xs text-primary truncate max-w-[120px]">${evt.title}</span>
             <span class="text-[10px] text-accent font-semibold shrink-0">${formattedDate}</span>
           </li>
         `;
