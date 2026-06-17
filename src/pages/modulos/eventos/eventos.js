@@ -261,9 +261,9 @@ export function init(state, db) {
         // Borde izquierdo estático respecto a selección (solo cambia por completado)
         const borderClass = isCompleted ? 'border-l-outline-variant/35' : 'border-l-accent';
         
-        // Oscurecer eventos pasados y darles fondo atenuado
+        // Oscurecer eventos pasados y darles un fondo grisáceo más evidente
         const pastClass = isPast 
-          ? 'opacity-55 bg-outline-variant/5 border-outline-variant/10' 
+          ? 'opacity-55 bg-outline-variant/20 border-outline-variant/25' 
           : 'bg-surface border-outline-variant/20';
 
         const titleClass = isCompleted
