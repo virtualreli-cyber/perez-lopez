@@ -26,59 +26,6 @@ export function render(state) {
         <h2 class="text-3xl font-bold text-primary tracking-tight mb-2">Presupuesto y Financiación</h2>
         <p class="text-base text-outline">Gestionen los pagos, proveedores y costes de la boda de forma integrada.</p>
       </div>
-      <div>
-        <button id="toggle-budget-form-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-md focus:ring-0 focus:outline-none">
-          <span class="material-symbols-outlined text-[16px]" id="budget-form-btn-icon">add</span>
-          <span id="budget-form-btn-text">Nuevo Concepto</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Formulario para Añadir Concepto -->
-    <div id="add-budget-form-container" class="hidden mb-8 w-full">
-      ${Card({
-        content: `
-          <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined">add_card</span> Añadir nuevo concepto al presupuesto
-          </h3>
-          
-          <form id="add-budget-item-form" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label for="budget-item-category" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
-                <select id="budget-item-category" class="w-full bg-background border-none rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-accent text-outline">
-                  <option value="BANQUETE">Banquete</option>
-                  <option value="FIESTA">Fiesta</option>
-                  <option value="FOTO/VIDEO">Foto / Vídeo</option>
-                  <option value="IGLESIA">Iglesia</option>
-                  <option value="IMAGEN">Imagen</option>
-                  <option value="REGALOS">Regalos</option>
-                  <option value="VIAJE">Viaje</option>
-                  <option value="OTROS">Otros</option>
-                </select>
-              </div>
-              <div class="md:col-span-2">
-                ${InputField({ id: 'budget-item-concept', label: 'Concepto / Proveedor', placeholder: 'Ej: Alquiler Finca, DJ Extra, Catering...', required: true })}
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              ${InputField({ id: 'budget-item-total', label: 'Presupuesto Total (€)', type: 'number', placeholder: '0.00', required: true })}
-              ${InputField({ id: 'budget-item-paid', label: 'Importe Pagado (€)', type: 'number', placeholder: '0.00', required: true })}
-              ${InputField({ id: 'budget-item-next-date', label: 'Fecha Próximo Pago', placeholder: 'Ej: Julio' })}
-              ${InputField({ id: 'budget-item-next-amount', label: 'Importe Próximo Pago', placeholder: 'Ej: 2.621€' })}
-            </div>
-
-            <div class="flex items-center justify-between border-t border-outline-variant/10 pt-4 flex-wrap gap-4">
-              <label class="flex items-center gap-2 cursor-pointer select-none">
-                <input type="checkbox" id="budget-item-is-gift" class="rounded border-outline-variant text-accent focus:ring-0 w-4 h-4 cursor-pointer" />
-                <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-[10px] text-outline font-normal">(como el vestido de novia, no cuenta en el coste real de la pareja)</span></span>
-              </label>
-              ${Button({ text: 'Añadir Concepto', icon: 'check', className: 'px-6 py-2.5 text-sm focus:ring-0 focus:outline-none' })}
-            </div>
-          </form>
-        `
-      })}
     </div>
 
     <!-- Cuadrícula Principal del Dashboard -->
@@ -92,9 +39,9 @@ export function render(state) {
             <span class="material-symbols-outlined">payments</span>
           </div>
           <div>
-            <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Global</span>
+            <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Global</span>
             <span id="kpi-total-global" class="text-xl font-black text-primary">€0,00</span>
-            <span class="text-[9px] text-outline block mt-0.5">Suma de todo el presupuesto</span>
+            <span class="text-xs text-outline block mt-0.5">Suma de todo el presupuesto</span>
           </div>
         </div>
 
@@ -104,9 +51,9 @@ export function render(state) {
             <span class="material-symbols-outlined">account_balance_wallet</span>
           </div>
           <div>
-            <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
+            <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
             <span id="kpi-total-real" class="text-xl font-black text-accent">€0,00</span>
-            <span class="text-[9px] text-outline block mt-0.5">Excluyendo regalos</span>
+            <span class="text-xs text-outline block mt-0.5">Excluyendo regalos</span>
           </div>
         </div>
 
@@ -117,12 +64,12 @@ export function render(state) {
               <span class="material-symbols-outlined">savings</span>
             </div>
             <div class="min-w-0">
-              <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Neto Pareja (Sin Cubierto)</span>
+              <span class="text-xs text-outline font-bold uppercase tracking-wider block">Neto Pareja (Sin Cubierto)</span>
               <span id="kpi-total-neto" class="text-xl font-black text-wine">€0,00</span>
             </div>
           </div>
           <div class="w-full">
-            <div class="flex justify-between items-center text-[9px] font-bold text-outline mb-1">
+            <div class="flex justify-between items-center text-xs font-bold text-outline mb-1">
               <span id="kpi-neto-pct-text">0% pagado</span>
               <span id="kpi-neto-values-text">€0 / €0</span>
             </div>
@@ -139,12 +86,12 @@ export function render(state) {
               <span class="material-symbols-outlined">price_check</span>
             </div>
             <div class="min-w-0">
-              <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Pagado</span>
+              <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Pagado</span>
               <span id="kpi-total-pagado" class="text-xl font-black text-primary">€0,00</span>
             </div>
           </div>
           <div class="w-full">
-            <div class="flex justify-between items-center text-[9px] font-bold text-outline mb-1">
+            <div class="flex justify-between items-center text-xs font-bold text-outline mb-1">
               <span id="kpi-pagado-pct-text">0% pagado</span>
               <span id="kpi-pagado-values-text">€0 / €0</span>
             </div>
@@ -160,9 +107,9 @@ export function render(state) {
             <span class="material-symbols-outlined">pending_actions</span>
           </div>
           <div>
-            <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Pendiente Real</span>
+            <span class="text-xs text-outline font-bold uppercase tracking-wider block">Pendiente Real</span>
             <span id="kpi-pendiente-real" class="text-xl font-black text-error">€0,00</span>
-            <span class="text-[9px] text-outline block mt-0.5">Restante por liquidar</span>
+            <span class="text-xs text-outline block mt-0.5">Restante por liquidar</span>
           </div>
         </div>
       </div>
@@ -175,7 +122,7 @@ export function render(state) {
         ${Card({
           content: `
             <h3 class="text-sm font-bold text-primary mb-4 uppercase tracking-wider flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">group</span> Control de Invitados
+              <span class="material-symbols-outlined text-lg">group</span> Control de Invitados
             </h3>
             
             <div class="space-y-4">
@@ -210,30 +157,30 @@ export function render(state) {
           content: `
             <div class="flex items-center justify-between mb-5 border-b border-outline-variant/15 pb-4">
               <h3 class="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">restaurant_menu</span> Costes por Cubierto
+                <span class="material-symbols-outlined text-lg">restaurant_menu</span> Costes por Cubierto
               </h3>
-              <span id="pax-count-badge" class="text-[10px] bg-primary/10 text-primary font-bold px-2.5 py-0.5 rounded-full">280 invitados</span>
+              <span id="pax-count-badge" class="text-xs bg-primary/10 text-primary font-bold px-2.5 py-0.5 rounded-full">280 invitados</span>
             </div>
             
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="border-b border-outline-variant/10">
-                    <th class="pb-3 px-3 text-[10px] font-bold text-outline uppercase">Concepto</th>
-                    <th class="pb-3 px-3 text-[10px] font-bold text-outline uppercase text-right">Total</th>
-                    <th class="pb-3 px-3 text-[10px] font-bold text-outline uppercase text-right">Por Pax</th>
+                    <th class="pb-3 px-3 text-xs font-bold text-outline uppercase">Concepto</th>
+                    <th class="pb-3 px-3 text-xs font-bold text-outline uppercase text-right">Total</th>
+                    <th class="pb-3 px-3 text-xs font-bold text-outline uppercase text-right">Por Pax</th>
                   </tr>
                 </thead>
-                <tbody id="banquete-breakdown-rows" class="divide-y divide-outline-variant/5 text-xs">
+                <tbody id="banquete-breakdown-rows" class="divide-y divide-outline-variant/5 text-sm">
                   <!-- Renderizado dinámicamente -->
                 </tbody>
               </table>
             </div>
 
             <div class="mt-5 pt-4 border-t border-outline-variant/15 flex flex-col gap-1 text-center bg-background/50 rounded-xl p-3.5">
-              <span class="text-[10px] text-outline font-bold uppercase">Coste Real de la Boda por Invitado</span>
+              <span class="text-xs text-outline font-bold uppercase">Coste Real de la Boda por Invitado</span>
               <span id="wedding-total-pax-cost" class="text-xl font-black text-accent">€0,00</span>
-              <span class="text-[9px] text-outline font-medium">Boda completa (sin regalos) / invitados</span>
+              <span class="text-xs text-outline font-medium">Boda completa (sin regalos) / invitados</span>
             </div>
           `
         })}
@@ -247,6 +194,53 @@ export function render(state) {
               <h3 class="text-lg font-bold text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined">list_alt</span> Desglose de Gastos
               </h3>
+              <button id="toggle-budget-form-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-md focus:ring-0 focus:outline-none shrink-0">
+                <span class="material-symbols-outlined text-[16px]" id="budget-form-btn-icon">add</span>
+                <span id="budget-form-btn-text">Nuevo Concepto</span>
+              </button>
+            </div>
+
+            <!-- Formulario para Añadir Concepto (Ubicado justo encima del desglose) -->
+            <div id="add-budget-form-container" class="hidden mb-6 w-full bg-background/30 p-5 rounded-2xl border border-outline-variant/20 shadow-sm">
+              <h4 class="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">add_card</span> Añadir nuevo concepto al presupuesto
+              </h4>
+              
+              <form id="add-budget-item-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label for="budget-item-category" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
+                    <select id="budget-item-category" class="w-full bg-background border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-accent text-outline">
+                      <option value="BANQUETE">Banquete</option>
+                      <option value="FIESTA">Fiesta</option>
+                      <option value="FOTO/VIDEO">Foto / Vídeo</option>
+                      <option value="IGLESIA">Iglesia</option>
+                      <option value="IMAGEN">Imagen</option>
+                      <option value="REGALOS">Regalos</option>
+                      <option value="VIAJE">Viaje</option>
+                      <option value="OTROS">Otros</option>
+                    </select>
+                  </div>
+                  <div class="md:col-span-2">
+                    ${InputField({ id: 'budget-item-concept', label: 'Concepto / Proveedor', placeholder: 'Ej: Alquiler Finca, DJ Extra, Catering...', required: true })}
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  ${InputField({ id: 'budget-item-total', label: 'Presupuesto Total (€)', type: 'number', placeholder: '0.00', required: true })}
+                  ${InputField({ id: 'budget-item-paid', label: 'Importe Pagado (€)', type: 'number', placeholder: '0.00', required: true })}
+                  ${InputField({ id: 'budget-item-next-date', label: 'Fecha Próximo Pago', placeholder: 'Ej: Julio' })}
+                  ${InputField({ id: 'budget-item-next-amount', label: 'Importe Próximo Pago', placeholder: 'Ej: 2.621€' })}
+                </div>
+
+                <div class="flex items-center justify-between border-t border-outline-variant/10 pt-4 flex-wrap gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" id="budget-item-is-gift" class="rounded border-outline-variant text-accent focus:ring-0 w-4 h-4 cursor-pointer" />
+                    <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-[10px] text-outline font-normal">(no cuenta en el gasto real de la pareja)</span></span>
+                  </label>
+                  ${Button({ text: 'Añadir Concepto', icon: 'check', className: 'px-5 py-2.5 text-xs focus:ring-0 focus:outline-none' })}
+                </div>
+              </form>
             </div>
             
             <div id="budget-categories-container" class="space-y-6">
@@ -270,7 +264,7 @@ export function render(state) {
  */
 export function init(state, db) {
   
-  // Filtrar filas de totales si existieran en el estado (defensa contra semillas CSV literales)
+  // Filtrar filas de totales si existieran en el estado (defensa contra semillas CSV de totales)
   const getFilteredBudget = () => {
     return (state.weddingBudget || []).filter(item => {
       const cat = (item.category || '').trim().toUpperCase();
@@ -338,18 +332,21 @@ export function init(state, db) {
     const elNetoValText = document.getElementById('kpi-neto-values-text');
     const elNetoBar = document.getElementById('kpi-neto-bar');
 
-    if (elGlobal) elGlobal.innerText = `€${totalGlobal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    if (elReal) elReal.innerText = `€${totalReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    if (elPagado) elPagado.innerText = `€${totalPagadoReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    if (elPendiente) elPendiente.innerText = `€${pendienteReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const eurFormat = { style: 'currency', currency: 'EUR' };
+    const eurFormatNoDec = { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 };
+
+    if (elGlobal) elGlobal.innerText = totalGlobal.toLocaleString('es-ES', eurFormat);
+    if (elReal) elReal.innerText = totalReal.toLocaleString('es-ES', eurFormat);
+    if (elPagado) elPagado.innerText = totalPagadoReal.toLocaleString('es-ES', eurFormat);
+    if (elPendiente) elPendiente.innerText = pendienteReal.toLocaleString('es-ES', eurFormat);
     
     if (elPctText) elPctText.innerText = `${pctPagado}% pagado`;
-    if (elValText) elValText.innerText = `€${totalPagadoReal.toLocaleString('es-ES', { maximumFractionDigits: 0 })} / €${totalReal.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`;
+    if (elValText) elValText.innerText = `${totalPagadoReal.toLocaleString('es-ES', eurFormatNoDec)} / ${totalReal.toLocaleString('es-ES', eurFormatNoDec)}`;
     if (elBar) elBar.style.width = `${Math.min(parseFloat(pctPagado), 100)}%`;
 
-    if (elNeto) elNeto.innerText = `€${totalSinCubierto.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elNeto) elNeto.innerText = totalSinCubierto.toLocaleString('es-ES', eurFormat);
     if (elNetoPctText) elNetoPctText.innerText = `${pctNeto}% pagado`;
-    if (elNetoValText) elNetoValText.innerText = `€${paidSinCubierto.toLocaleString('es-ES', { maximumFractionDigits: 0 })} / €${totalSinCubierto.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`;
+    if (elNetoValText) elNetoValText.innerText = `${paidSinCubierto.toLocaleString('es-ES', eurFormatNoDec)} / ${totalSinCubierto.toLocaleString('es-ES', eurFormatNoDec)}`;
     if (elNetoBar) elNetoBar.style.width = `${Math.min(parseFloat(pctNeto), 100)}%`;
   };
 
@@ -388,33 +385,36 @@ export function init(state, db) {
     const djPaxVal = N > 0 ? djTotal / N : 0;
     const banquetePaxVal = cateringPaxVal + fincaPaxVal + ilumPaxVal + djPaxVal;
 
+    const eurFormat = { style: 'currency', currency: 'EUR' };
+    const eurFormatNoDec = { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 };
+
     const tbody = document.getElementById('banquete-breakdown-rows');
     if (tbody) {
       tbody.innerHTML = `
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x €${C.toLocaleString('es-ES', { minimumFractionDigits: 0 })})</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">€${cateringTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">€${cateringPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x ${C.toLocaleString('es-ES', eurFormatNoDec)})</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${cateringTotalVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${cateringPaxVal.toLocaleString('es-ES', eurFormat)}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
           <td class="py-3.5 px-3 font-semibold text-primary">Alquiler Finca (50%)</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">€${fincaTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">€${fincaPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${fincaTotalVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${fincaPaxVal.toLocaleString('es-ES', eurFormat)}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
           <td class="py-3.5 px-3 font-semibold text-primary">Iluminación</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">€${ilumTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">€${ilumPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${ilumTotalVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${ilumPaxVal.toLocaleString('es-ES', eurFormat)}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
           <td class="py-3.5 px-3 font-semibold text-primary">DJ + Sonido</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">€${djTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">€${djPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${djTotalVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${djPaxVal.toLocaleString('es-ES', eurFormat)}</td>
         </tr>
         <tr class="font-bold bg-primary/5">
           <td class="py-4 pl-3 text-primary rounded-l-xl">TOTAL BANQUETE</td>
-          <td class="py-4 px-3 text-right text-primary">€${banqueteTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          <td class="py-4 pr-3 text-right text-accent rounded-r-xl">€${banquetePaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-4 px-3 text-right text-primary">${banqueteTotalVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-4 pr-3 text-right text-accent rounded-r-xl">${banquetePaxVal.toLocaleString('es-ES', eurFormat)}</td>
         </tr>
       `;
     }
@@ -424,7 +424,7 @@ export function init(state, db) {
     const wholeWeddingPaxCost = N > 0 ? totalReal / N : 0;
     const elWholeCost = document.getElementById('wedding-total-pax-cost');
     if (elWholeCost) {
-      elWholeCost.innerText = `€${wholeWeddingPaxCost.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / pax`;
+      elWholeCost.innerText = `${wholeWeddingPaxCost.toLocaleString('es-ES', eurFormat)} / pax`;
     }
   };
 
@@ -436,6 +436,7 @@ export function init(state, db) {
     const budget = getFilteredBudget();
 
     const categories = ['BANQUETE', 'FIESTA', 'FOTO/VIDEO', 'IGLESIA', 'IMAGEN', 'REGALOS', 'VIAJE', 'OTROS'];
+    const eurFormat = { style: 'currency', currency: 'EUR' };
 
     categories.forEach(catName => {
       const catItems = budget.filter(item => {
@@ -456,23 +457,23 @@ export function init(state, db) {
       // Limpiar y securizar ID del selector (evitando barras '/' que rompen querySelector)
       const cleanCatId = `cat-items-list-${catName.replace(/[^A-Z0-9]/ig, '-')}`;
 
-      // Crear sección de la categoría
+      // Crear sección de la categoría (Estilo Card)
       const catSection = document.createElement('div');
-      catSection.className = 'bg-background/25 rounded-2xl p-4 border border-outline-variant/10 shadow-sm space-y-3';
+      catSection.className = 'bg-surface rounded-2xl p-5 border border-outline-variant/20 shadow-linen space-y-4 mb-4';
       
       catSection.innerHTML = `
-        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-outline-variant/10 pb-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-black text-primary uppercase tracking-wider">${catName}</span>
-            <span class="text-[10px] bg-primary/10 text-primary font-bold px-2.5 py-0.5 rounded-full">${catItems.length} concepto${catItems.length !== 1 ? 's' : ''}</span>
+        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-outline-variant/10 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm font-black text-primary uppercase tracking-wider">${catName}</span>
+            <span class="text-xs bg-primary/10 text-primary font-bold px-3 py-1 rounded-full">${catItems.length} concepto${catItems.length !== 1 ? 's' : ''}</span>
           </div>
-          <div class="text-[10px] text-outline font-semibold flex items-center gap-3">
-            <span>Total: <strong>€${catTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
-            <span class="text-success">Pagado: <strong>€${catPaid.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
-            <span class="text-error">Pendiente: <strong>€${catPending.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
+          <div class="text-xs text-outline font-semibold flex items-center gap-4">
+            <span>Total: <strong class="text-primary">${catTotal.toLocaleString('es-ES', eurFormat)}</strong></span>
+            <span class="text-success">Pagado: <strong class="text-success">${catPaid.toLocaleString('es-ES', eurFormat)}</strong></span>
+            <span class="text-error">Pendiente: <strong class="text-error">${catPending.toLocaleString('es-ES', eurFormat)}</strong></span>
           </div>
         </div>
-        <div class="divide-y divide-outline-variant/5" id="${cleanCatId}">
+        <div class="pt-2" id="${cleanCatId}">
           <!-- Conceptos renderizados dinámicamente -->
         </div>
       `;
@@ -528,7 +529,7 @@ export function init(state, db) {
               <div class="flex items-center justify-between border-t border-outline-variant/10 pt-3 flex-wrap gap-3">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input type="checkbox" id="edit-is-gift-${item.id}" ${item.isGift ? 'checked' : ''} class="rounded border-outline-variant text-accent focus:ring-0 w-4 h-4 cursor-pointer" />
-                  <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-[10px] text-outline font-normal">(no cuenta en el gasto real)</span></span>
+                  <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-xs text-outline font-normal">(no cuenta en el gasto real)</span></span>
                 </label>
                 <div class="flex items-center gap-2">
                   <button class="save-edit-btn bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-4 py-2 rounded-full transition-all flex items-center gap-1.5 shadow-sm focus:outline-none">
@@ -593,39 +594,39 @@ export function init(state, db) {
           });
 
         } else {
-          // MODO LECTURA NORMAL
+          // MODO LECTURA NORMAL (Visualmente individualizados como tarjetas con separación clara)
           const itemPending = Math.max(item.total - item.paid, 0);
           itemEl.innerHTML = `
-            <div class="flex flex-col md:flex-row md:items-center justify-between py-3.5 hover:bg-white/40 transition-all px-2 rounded-xl group gap-4 border-b border-outline-variant/5 last:border-b-0">
+            <div class="flex flex-col md:flex-row md:items-center justify-between py-3.5 px-4 hover:bg-white/70 transition-all rounded-xl group gap-4 border border-outline-variant/10 bg-background/5 mb-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-bold text-xs text-primary cursor-pointer hover:underline item-concept-click" title="Clic para editar">${item.concept}</span>
-                  ${item.isGift ? '<span class="text-[8px] bg-accent/10 text-accent border border-accent/20 font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Regalo</span>' : ''}
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <span class="font-bold text-sm text-primary cursor-pointer hover:underline item-concept-click" title="Clic para editar">${item.concept}</span>
+                  ${item.isGift ? '<span class="text-[10px] bg-accent/10 text-accent border border-accent/20 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Regalo</span>' : ''}
                 </div>
-                <div class="text-[10px] text-outline mt-1 flex gap-3 flex-wrap font-medium">
+                <div class="text-xs text-outline mt-1.5 flex gap-3 flex-wrap font-semibold">
                   <span>Próximo pago: <strong class="text-primary">${item.nextPaymentDate || 'N/A'}</strong> ${item.nextPaymentAmount ? `(${item.nextPaymentAmount})` : ''}</span>
                 </div>
               </div>
               <div class="grid grid-cols-3 md:flex md:items-center gap-6 text-right shrink-0">
-                <div class="md:w-20">
-                  <span class="block text-[8px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
-                  <span class="text-xs font-bold text-primary">€${item.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                <div class="md:w-24">
+                  <span class="block text-[9px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
+                  <span class="text-sm font-bold text-primary">${item.total.toLocaleString('es-ES', eurFormat)}</span>
                 </div>
-                <div class="md:w-20">
-                  <span class="block text-[8px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pagado</span>
-                  <span class="text-xs font-bold text-success">€${item.paid.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                <div class="md:w-24">
+                  <span class="block text-[9px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pagado</span>
+                  <span class="text-sm font-bold text-success">${item.paid.toLocaleString('es-ES', eurFormat)}</span>
                 </div>
-                <div class="md:w-20">
-                  <span class="block text-[8px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pendiente</span>
-                  <span class="text-xs font-bold text-error">€${itemPending.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                <div class="md:w-24">
+                  <span class="block text-[9px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pendiente</span>
+                  <span class="text-sm font-bold text-error">${itemPending.toLocaleString('es-ES', eurFormat)}</span>
                 </div>
               </div>
               <div class="flex items-center justify-end gap-1.5 shrink-0 border-l border-outline-variant/10 pl-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button class="edit-item-btn text-outline hover:text-accent p-1 focus:outline-none" title="Editar">
-                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                  <span class="material-symbols-outlined text-lg">edit</span>
                 </button>
                 <button class="delete-item-btn text-outline hover:text-error p-1 focus:outline-none" title="Eliminar">
-                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                  <span class="material-symbols-outlined text-lg">delete</span>
                 </button>
               </div>
             </div>
