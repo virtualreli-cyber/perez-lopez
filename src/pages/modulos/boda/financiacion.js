@@ -2,6 +2,8 @@ import { Card } from '../../../components/Card.js';
 import { InputField } from '../../../components/InputField.js';
 import { Button } from '../../../components/Button.js';
 
+let editingItemId = null;
+
 /**
  * Renderiza la interfaz de Financiación y Presupuesto de la Boda.
  * 
@@ -9,6 +11,8 @@ import { Button } from '../../../components/Button.js';
  * @returns {string} HTML de la vista
  */
 export function render(state) {
+  editingItemId = null;
+
   const content = `
     <!-- Menú de Sub-Páginas del Módulo Boda -->
     <div class="flex border-b border-outline-variant/20 mb-8 gap-1 overflow-x-auto pb-1 custom-scrollbar">
@@ -17,77 +21,215 @@ export function render(state) {
       <a href="#/boda/financiacion" class="px-5 py-2.5 rounded-t-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 bg-primary text-white">Presupuesto Boda</a>
     </div>
 
-    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h2 class="text-3xl font-bold text-primary tracking-tight mb-2">Presupuesto y Financiación</h2>
-        <p class="text-base text-outline">Controlen los gastos de la boda. Límite máximo establecido: €20.000.</p>
+        <p class="text-base text-outline">Gestionen los pagos, proveedores y costes de la boda de forma integrada.</p>
+      </div>
+      <div>
+        <button id="toggle-budget-form-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-md focus:ring-0 focus:outline-none">
+          <span class="material-symbols-outlined text-[16px]" id="budget-form-btn-icon">add</span>
+          <span id="budget-form-btn-text">Nuevo Concepto</span>
+        </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <!-- Formulario para Añadir Concepto -->
+    <div id="add-budget-form-container" class="hidden mb-8 w-full">
+      ${Card({
+        content: `
+          <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined">add_card</span> Añadir nuevo concepto al presupuesto
+          </h3>
+          
+          <form id="add-budget-item-form" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label for="budget-item-category" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
+                <select id="budget-item-category" class="w-full bg-background border-none rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-accent text-outline">
+                  <option value="BANQUETE">Banquete</option>
+                  <option value="FIESTA">Fiesta</option>
+                  <option value="FOTO/VIDEO">Foto / Vídeo</option>
+                  <option value="IGLESIA">Iglesia</option>
+                  <option value="IMAGEN">Imagen</option>
+                  <option value="REGALOS">Regalos</option>
+                  <option value="VIAJE">Viaje</option>
+                  <option value="OTROS">Otros</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                ${InputField({ id: 'budget-item-concept', label: 'Concepto / Proveedor', placeholder: 'Ej: Alquiler Finca, DJ Extra, Catering...', required: true })}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              ${InputField({ id: 'budget-item-total', label: 'Presupuesto Total (€)', type: 'number', placeholder: '0.00', required: true })}
+              ${InputField({ id: 'budget-item-paid', label: 'Importe Pagado (€)', type: 'number', placeholder: '0.00', required: true })}
+              ${InputField({ id: 'budget-item-next-date', label: 'Fecha Próximo Pago', placeholder: 'Ej: Julio' })}
+              ${InputField({ id: 'budget-item-next-amount', label: 'Importe Próximo Pago', placeholder: 'Ej: 2.621€' })}
+            </div>
+
+            <div class="flex items-center justify-between border-t border-outline-variant/10 pt-4 flex-wrap gap-4">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="budget-item-is-gift" class="rounded border-outline-variant text-accent focus:ring-0 w-4 h-4 cursor-pointer" />
+                <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-[10px] text-outline font-normal">(como el vestido de novia, no cuenta en el coste real de la pareja)</span></span>
+              </label>
+              ${Button({ text: 'Añadir Concepto', icon: 'check', className: 'px-6 py-2.5 text-sm focus:ring-0 focus:outline-none' })}
+            </div>
+          </form>
+        `
+      })}
+    </div>
+
+    <!-- Cuadrícula Principal del Dashboard -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-8">
       
-      <!-- Balance General -->
+      <!-- KPIs Resumen en la parte superior -->
+      <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI 1: Total Global -->
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Global</span>
+            <span id="kpi-total-global" class="text-2xl font-bold text-primary">€0,00</span>
+            <span class="text-[10px] text-outline block mt-0.5">Suma de todos los conceptos</span>
+          </div>
+        </div>
+
+        <!-- KPI 2: Total Real (sin regalos) -->
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
+            <span id="kpi-total-real" class="text-2xl font-bold text-accent">€0,00</span>
+            <span class="text-[10px] text-outline block mt-0.5">Excluyendo regalos</span>
+          </div>
+        </div>
+
+        <!-- KPI 3: Total Pagado (sin regalos) -->
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success shrink-0">
+              <span class="material-symbols-outlined">price_check</span>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Pagado</span>
+              <span id="kpi-total-pagado" class="text-2xl font-bold text-primary">€0,00</span>
+            </div>
+          </div>
+          <div class="w-full">
+            <div class="flex justify-between items-center text-[9px] font-bold text-outline mb-1">
+              <span id="kpi-pagado-pct-text">0% pagado</span>
+              <span id="kpi-pagado-values-text">€0 / €0</span>
+            </div>
+            <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
+              <div id="kpi-pagado-bar" class="h-full bg-success rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 4: Pendiente Real -->
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-error/10 flex items-center justify-center text-error shrink-0">
+            <span class="material-symbols-outlined">pending_actions</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Pendiente Real</span>
+            <span id="kpi-pendiente-real" class="text-2xl font-bold text-error">€0,00</span>
+            <span class="text-[10px] text-outline block mt-0.5">Restante por liquidar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fila de Banquete & Controles (Izquierda) e Historial (Derecha) -->
+      
+      <!-- Columna Izquierda: Parámetros e Invitados -->
       <div class="lg:col-span-4 space-y-6">
+        <!-- Parámetros de la Boda -->
         ${Card({
           content: `
-            <h3 class="text-sm font-bold text-primary mb-4 uppercase tracking-wider">Estado del Presupuesto</h3>
-            <div class="flex justify-between items-end mb-2">
+            <h3 class="text-sm font-bold text-primary mb-4 uppercase tracking-wider flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">group</span> Control de Invitados
+            </h3>
+            
+            <div class="space-y-4">
               <div>
-                <span class="text-xs text-outline font-medium block">Gastado</span>
-                <span id="wedding-spent-val" class="text-3xl font-bold text-primary">€0</span>
+                <label for="input-wedding-guests" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Invitados Estimados</label>
+                <div class="relative flex items-center">
+                  <input type="number" id="input-wedding-guests" value="${state.weddingGuests}" class="w-full bg-background border-none rounded-xl pl-4 pr-10 py-3 text-sm font-bold text-primary focus:ring-2 focus:ring-accent" />
+                  <span class="absolute right-3 text-outline material-symbols-outlined text-lg">people</span>
+                </div>
               </div>
-              <div class="text-right">
-                <span class="text-xs text-outline font-medium block">Objetivo Máx</span>
-                <span class="text-sm font-bold text-primary">€20.000</span>
+              
+              <div>
+                <label for="input-catering-cost-pax" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Coste Catering por Persona (€)</label>
+                <div class="relative flex items-center">
+                  <input type="number" step="0.01" id="input-catering-cost-pax" value="${state.weddingCostPax}" class="w-full bg-background border-none rounded-xl pl-4 pr-10 py-3 text-sm font-bold text-primary focus:ring-2 focus:ring-accent" />
+                  <span class="absolute right-3 text-outline font-bold text-xs">€</span>
+                </div>
               </div>
-            </div>
 
-            <div class="w-full h-3.5 bg-outline-variant/30 rounded-full overflow-hidden mb-4">
-              <div id="wedding-budget-pct-bar" class="h-full bg-accent rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-center pt-2 border-t border-outline-variant/10">
-              <div>
-                <span class="text-[10px] text-outline uppercase font-semibold">Disponible</span>
-                <span id="wedding-avail-val" class="block text-sm font-bold text-primary mt-0.5">€0</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-outline uppercase font-semibold">Porcentaje</span>
-                <span id="wedding-pct-val" class="block text-sm font-bold text-accent mt-0.5">0%</span>
+              <div class="pt-2">
+                <button id="save-params-btn" class="w-full bg-primary hover:bg-primary-dark text-white font-semibold text-xs py-3 rounded-full transition-all flex items-center justify-center gap-2 select-none shadow-sm">
+                  <span class="material-symbols-outlined text-[16px]">sync</span>
+                  <span>Recalcular e Sincronizar</span>
+                </button>
               </div>
             </div>
           `
         })}
 
+        <!-- Desglose por Invitado del Banquete -->
         ${Card({
           content: `
-            <h3 class="text-sm font-bold text-primary mb-3 uppercase tracking-wider">Añadir Gasto Boda</h3>
-            <form id="wedding-add-expense-form" class="space-y-3">
-              ${InputField({ id: 'wedding-exp-desc', label: 'Concepto', placeholder: 'Ej: Flores del altar, Alianza Isra', required: true })}
-              ${InputField({ id: 'wedding-exp-amount', label: 'Importe (€)', type: 'number', placeholder: '0.00', required: true })}
-              <div>
-                <label for="wedding-exp-payer" class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Pagador</label>
-                <select id="wedding-exp-payer" class="w-full bg-background border-none rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-accent text-outline">
-                  <option value="Isra">Isra</option>
-                  <option value="Lidia">Lidia</option>
-                </select>
-              </div>
-              ${Button({ text: 'Añadir Gasto', icon: 'add_card', className: 'w-full py-3 text-sm' })}
-            </form>
+            <div class="flex items-center justify-between mb-4 border-b border-outline-variant/15 pb-3">
+              <h3 class="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">restaurant_menu</span> Costes por Cubierto
+              </h3>
+              <span id="pax-count-badge" class="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">280 invitados</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-outline-variant/10">
+                    <th class="pb-2 text-[10px] font-bold text-outline uppercase">Concepto</th>
+                    <th class="pb-2 text-[10px] font-bold text-outline uppercase text-right">Total</th>
+                    <th class="pb-2 text-[10px] font-bold text-outline uppercase text-right">Por Pax</th>
+                  </tr>
+                </thead>
+                <tbody id="banquete-breakdown-rows" class="divide-y divide-outline-variant/5 text-xs">
+                  <!-- Renderizado dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-outline-variant/15 flex flex-col gap-1 text-center bg-background/50 rounded-xl p-3">
+              <span class="text-[10px] text-outline font-bold uppercase">Coste Real de la Boda por Invitado</span>
+              <span id="wedding-total-pax-cost" class="text-xl font-black text-accent">€0,00</span>
+              <span class="text-[9px] text-outline font-medium">Boda completa (sin regalos) / invitados</span>
+            </div>
           `
         })}
       </div>
 
-      <!-- Detalle de Gastos de la Boda -->
+      <!-- Columna Derecha: Tabla de Presupuesto Detallada -->
       <div class="lg:col-span-8">
         ${Card({
           content: `
-            <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined">receipt_long</span> Lista de Gastos Específicos
-            </h3>
-            <ul id="wedding-expenses-list" class="divide-y divide-outline-variant/10 max-h-[500px] overflow-y-auto pr-1">
-              <!-- Se renderiza en init() -->
-            </ul>
+            <div class="flex items-center justify-between mb-4 border-b border-outline-variant/20 pb-4">
+              <h3 class="text-lg font-bold text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined">list_alt</span> Desglose de Gastos
+              </h3>
+            </div>
+            
+            <div id="budget-categories-container" class="space-y-6 max-h-[750px] overflow-y-auto pr-1 custom-scrollbar">
+              <!-- Renderizado dinámicamente -->
+            </div>
           `
         })}
       </div>
@@ -105,95 +247,417 @@ export function render(state) {
  * @param {Object} db - Interfaz unificada de base de datos
  */
 export function init(state, db) {
-  const isWeddingExpense = (exp) => {
-    const desc = exp.desc.toLowerCase();
-    return desc.includes('boda') || desc.includes('vestido') || desc.includes('banquete') || desc.includes('fotógrafo') || desc.includes('alianza') || desc.includes('flores');
+  
+  const renderKPIs = () => {
+    const budget = state.weddingBudget || [];
+    
+    // Sumas
+    const totalGlobal = budget.reduce((sum, item) => sum + item.total, 0);
+    const totalReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.total, 0);
+    const totalPagadoReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.paid, 0);
+    const pendienteReal = Math.max(totalReal - totalPagadoReal, 0);
+    
+    const pctPagado = totalReal > 0 ? ((totalPagadoReal / totalReal) * 100).toFixed(1) : '0.0';
+
+    // Rellenar UI
+    const elGlobal = document.getElementById('kpi-total-global');
+    const elReal = document.getElementById('kpi-total-real');
+    const elPagado = document.getElementById('kpi-total-pagado');
+    const elPendiente = document.getElementById('kpi-pendiente-real');
+    const elPctText = document.getElementById('kpi-pagado-pct-text');
+    const elValText = document.getElementById('kpi-pagado-values-text');
+    const elBar = document.getElementById('kpi-pagado-bar');
+
+    if (elGlobal) elGlobal.innerText = `€${totalGlobal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elReal) elReal.innerText = `€${totalReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elPagado) elPagado.innerText = `€${totalPagadoReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elPendiente) elPendiente.innerText = `€${pendienteReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    
+    if (elPctText) elPctText.innerText = `${pctPagado}% pagado`;
+    if (elValText) elValText.innerText = `€${totalPagadoReal.toLocaleString('es-ES', { maximumFractionDigits: 0 })} / €${totalReal.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`;
+    if (elBar) elBar.style.width = `${Math.min(parseFloat(pctPagado), 100)}%`;
   };
 
-  const renderAll = () => {
-    // 1. Filtrar gastos relacionados con la boda
-    const weddingExpenses = state.expenses.filter(isWeddingExpense);
-    const calculatedSpent = weddingExpenses.reduce((sum, e) => sum + e.amount, 0);
-    // Base de 12.500 como estimación base de banquetes/señales previas
-    const totalSpent = calculatedSpent + 12500;
-    const limit = 20000;
-    const pct = Math.min((totalSpent / limit) * 100, 100).toFixed(1);
+  const renderBanquete = () => {
+    const budget = state.weddingBudget || [];
+    const N = state.weddingGuests || 280;
+    const C = state.weddingCostPax || 90.00;
 
-    const spentEl = document.getElementById('wedding-spent-val');
-    const availEl = document.getElementById('wedding-avail-val');
-    const pctEl = document.getElementById('wedding-pct-val');
-    const barEl = document.getElementById('wedding-budget-pct-bar');
+    // Badge de invitados
+    const badge = document.getElementById('pax-count-badge');
+    if (badge) badge.innerText = `${N} invitados`;
 
-    if (spentEl) spentEl.innerText = `€${totalSpent.toLocaleString('es-ES')}`;
-    if (availEl) availEl.innerText = `€${Math.max(limit - totalSpent, 0).toLocaleString('es-ES')}`;
-    if (pctEl) pctEl.innerText = `${pct}%`;
-    if (barEl) barEl.style.width = `${pct}%`;
+    // Buscar partidas del banquete para el cálculo real por pax
+    const fincaItem = budget.find(item => item.category === 'BANQUETE' && item.concept.toLowerCase().includes('finca'));
+    const fincaTotal = fincaItem ? fincaItem.total : 5200.00;
+    const fincaHalfTotal = fincaTotal / 2;
 
-    // 2. Renderizar listado de gastos de boda
-    const listEl = document.getElementById('wedding-expenses-list');
-    if (!listEl) return;
+    const ilumItem = budget.find(item => item.category === 'BANQUETE' && item.concept.toLowerCase().includes('iluminación'));
+    const ilumTotal = ilumItem ? ilumItem.total : 3086.00;
 
-    listEl.innerHTML = '';
+    const djItem = budget.find(item => item.category === 'FIESTA' && item.concept.toLowerCase().includes('dj'));
+    const djTotal = djItem ? djItem.total : 2257.00;
 
-    // Añadir línea base ficticia (para coincidir con el gasto inicial base)
-    listEl.innerHTML += `
-      <li class="flex items-center justify-between py-3.5">
-        <div>
-          <p class="text-xs font-bold text-primary">Señales previas y Banquete (Base)</p>
-          <p class="text-[10px] text-outline mt-0.5">Estimado inicial acumulado</p>
-        </div>
-        <div class="text-right">
-          <p class="text-xs font-bold text-primary">€12.500,00</p>
-          <span class="text-[9px] text-outline font-semibold px-2 py-0.5 bg-background rounded-full">Suscripción</span>
-        </div>
-      </li>
-    `;
+    // Totales
+    const cateringTotalVal = N * C;
+    const fincaTotalVal = fincaHalfTotal;
+    const ilumTotalVal = ilumTotal;
+    const djTotalVal = djTotal;
+    const banqueteTotalVal = cateringTotalVal + fincaTotalVal + ilumTotalVal + djTotalVal;
 
-    if (weddingExpenses.length > 0) {
-      weddingExpenses.forEach(exp => {
-        const li = document.createElement('li');
-        li.className = 'flex items-center justify-between py-3.5 group';
-        li.innerHTML = `
-          <div>
-            <p class="text-xs font-bold text-primary">${exp.desc}</p>
-            <p class="text-[10px] text-outline mt-0.5">${exp.date} — Pagado por ${exp.payer}</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <p class="text-xs font-bold text-accent">€${exp.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</p>
-            <button class="delete-exp-btn text-outline hover:text-error lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 transition-opacity p-1" aria-label="Eliminar gasto">
-              <span class="material-symbols-outlined text-sm">delete</span>
-            </button>
-          </div>
-        `;
+    // Por pax
+    const cateringPaxVal = C;
+    const fincaPaxVal = N > 0 ? fincaHalfTotal / N : 0;
+    const ilumPaxVal = N > 0 ? ilumTotal / N : 0;
+    const djPaxVal = N > 0 ? djTotal / N : 0;
+    const banquetePaxVal = cateringPaxVal + fincaPaxVal + ilumPaxVal + djPaxVal;
 
-        li.querySelector('.delete-exp-btn').addEventListener('click', async () => {
-          if (confirm(`¿Estás seguro de que deseas eliminar el gasto "${exp.desc}"?`)) {
-            await db.deleteExpense(exp.id);
-          }
-        });
+    const tbody = document.getElementById('banquete-breakdown-rows');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
+          <td class="py-2.5 font-semibold text-primary">Catering (${N} pax x €${C.toLocaleString('es-ES', { minimumFractionDigits: 0 })})</td>
+          <td class="py-2.5 text-right font-bold text-primary">€${cateringTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-2.5 text-right font-bold text-accent">€${cateringPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
+          <td class="py-2.5 font-semibold text-primary">Alquiler Finca (50%)</td>
+          <td class="py-2.5 text-right font-bold text-primary">€${fincaTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-2.5 text-right font-bold text-accent">€${fincaPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
+          <td class="py-2.5 font-semibold text-primary">Iluminación</td>
+          <td class="py-2.5 text-right font-bold text-primary">€${ilumTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-2.5 text-right font-bold text-accent">€${ilumPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
+          <td class="py-2.5 font-semibold text-primary">DJ + Sonido</td>
+          <td class="py-2.5 text-right font-bold text-primary">€${djTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-2.5 text-right font-bold text-accent">€${djPaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+        <tr class="font-bold bg-primary/5">
+          <td class="py-3 pl-2 text-primary rounded-l-xl">TOTAL BANQUETE</td>
+          <td class="py-3 text-right text-primary">€${banqueteTotalVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="py-3 pr-2 text-right text-accent rounded-r-xl">€${banquetePaxVal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+      `;
+    }
 
-        listEl.appendChild(li);
-      });
+    // Coste real de la boda entera por invitado
+    const totalReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.total, 0);
+    const wholeWeddingPaxCost = N > 0 ? totalReal / N : 0;
+    const elWholeCost = document.getElementById('wedding-total-pax-cost');
+    if (elWholeCost) {
+      elWholeCost.innerText = `€${wholeWeddingPaxCost.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / pax`;
     }
   };
 
-  // Guardar nuevo gasto
-  const form = document.getElementById('wedding-add-expense-form');
+  const renderBudgetList = () => {
+    const container = document.getElementById('budget-categories-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const budget = state.weddingBudget || [];
+
+    const categories = ['BANQUETE', 'FIESTA', 'FOTO/VIDEO', 'IGLESIA', 'IMAGEN', 'REGALOS', 'VIAJE', 'OTROS'];
+
+    categories.forEach(catName => {
+      const catItems = budget.filter(item => {
+        const itemCat = (item.category || 'OTROS').toUpperCase();
+        if (catName === 'OTROS') {
+          return !['BANQUETE', 'FIESTA', 'FOTO/VIDEO', 'IGLESIA', 'IMAGEN', 'REGALOS', 'VIAJE'].includes(itemCat);
+        }
+        return itemCat === catName;
+      });
+
+      if (catItems.length === 0) return;
+
+      // Calcular totales por categoría
+      const catTotal = catItems.reduce((sum, item) => sum + item.total, 0);
+      const catPaid = catItems.reduce((sum, item) => sum + item.paid, 0);
+      const catPending = Math.max(catTotal - catPaid, 0);
+
+      // Crear sección de la categoría
+      const catSection = document.createElement('div');
+      catSection.className = 'bg-background/25 rounded-2xl p-4 border border-outline-variant/10 shadow-sm space-y-3';
+      
+      catSection.innerHTML = `
+        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-outline-variant/10 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-primary uppercase tracking-wider">${catName}</span>
+            <span class="text-[10px] bg-primary/10 text-primary font-bold px-2.5 py-0.5 rounded-full">${catItems.length} concepto${catItems.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="text-[10px] text-outline font-semibold flex items-center gap-3">
+            <span>Total: <strong>€${catTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
+            <span class="text-success">Pagado: <strong>€${catPaid.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
+            <span class="text-error">Pendiente: <strong>€${catPending.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
+          </div>
+        </div>
+        <div class="divide-y divide-outline-variant/5" id="cat-items-list-${catName}">
+          <!-- Conceptos renderizados dinámicamente -->
+        </div>
+      `;
+
+      container.appendChild(catSection);
+      const itemsList = catSection.querySelector(`#cat-items-list-${catName}`);
+
+      catItems.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'transition-all duration-200';
+        
+        const isEditing = editingItemId === item.id;
+        
+        if (isEditing) {
+          // MODO EDICIÓN INLINE
+          itemEl.innerHTML = `
+            <div class="bg-surface/50 p-4 rounded-xl border border-outline-variant/30 space-y-4 my-3 transition-all">
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-4">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Concepto / Proveedor</label>
+                  <input type="text" id="edit-concept-${item.id}" value="${item.concept}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold" required />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Presupuesto (€)</label>
+                  <input type="number" step="0.01" id="edit-total-${item.id}" value="${item.total}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Pagado (€)</label>
+                  <input type="number" step="0.01" id="edit-paid-${item.id}" value="${item.paid}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Fecha Pago</label>
+                  <input type="text" id="edit-next-date-${item.id}" value="${item.nextPaymentDate}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Ej: Julio" />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Importe Pago</label>
+                  <input type="text" id="edit-next-amount-${item.id}" value="${item.nextPaymentAmount}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Ej: 2.621€" />
+                </div>
+              </div>
+              <div class="flex items-center justify-between border-t border-outline-variant/10 pt-3 flex-wrap gap-3">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="edit-is-gift-${item.id}" ${item.isGift ? 'checked' : ''} class="rounded border-outline-variant text-accent focus:ring-0 w-4 h-4 cursor-pointer" />
+                  <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-[10px] text-outline font-normal">(no cuenta en el gasto real)</span></span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <button class="save-edit-btn bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-4 py-2 rounded-full transition-all flex items-center gap-1.5 shadow-sm focus:outline-none">
+                    <span class="material-symbols-outlined text-[14px]">check</span>
+                    <span>Guardar</span>
+                  </button>
+                  <button class="cancel-edit-btn bg-outline-variant/20 hover:bg-outline-variant/30 text-outline hover:text-primary font-semibold text-xs px-4 py-2 rounded-full transition-all flex items-center gap-1.5 focus:outline-none">
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                    <span>Cancelar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+
+          const saveBtn = itemEl.querySelector('.save-edit-btn');
+          const cancelBtn = itemEl.querySelector('.cancel-edit-btn');
+
+          saveBtn.addEventListener('click', async (e) => {
+            e.currentTarget.blur();
+            const concept = itemEl.querySelector(`#edit-concept-${item.id}`).value.trim();
+            const total = parseFloat(itemEl.querySelector(`#edit-total-${item.id}`).value) || 0;
+            const paid = parseFloat(itemEl.querySelector(`#edit-paid-${item.id}`).value) || 0;
+            const nextDate = itemEl.querySelector(`#edit-next-date-${item.id}`).value.trim();
+            const nextAmount = itemEl.querySelector(`#edit-next-amount-${item.id}`).value.trim();
+            const isGift = itemEl.querySelector(`#edit-is-gift-${item.id}`).checked;
+
+            if (concept) {
+              await db.updateWeddingBudgetItem(item.id, {
+                category: item.category,
+                concept,
+                total,
+                paid,
+                nextPaymentDate: nextDate,
+                nextPaymentAmount: nextAmount,
+                pending: Math.max(total - paid, 0),
+                isGift
+              });
+              editingItemId = null;
+              renderAll();
+            }
+          });
+
+          cancelBtn.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            editingItemId = null;
+            renderAll();
+          });
+
+          // Soporte Enter y Escape
+          const inputs = itemEl.querySelectorAll('input');
+          inputs.forEach(input => {
+            input.addEventListener('keydown', async (evt) => {
+              if (evt.key === 'Enter') {
+                evt.preventDefault();
+                saveBtn.click();
+              } else if (evt.key === 'Escape') {
+                cancelBtn.click();
+              }
+            });
+          });
+
+        } else {
+          // MODO LECTURA NORMAL
+          const itemPending = Math.max(item.total - item.paid, 0);
+          itemEl.innerHTML = `
+            <div class="flex flex-col md:flex-row md:items-center justify-between py-3.5 hover:bg-white/40 transition-all px-2 rounded-xl group gap-4 border-b border-outline-variant/5 last:border-b-0">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-xs text-primary cursor-pointer hover:underline item-concept-click" title="Clic para editar">${item.concept}</span>
+                  ${item.isGift ? '<span class="text-[8px] bg-accent/10 text-accent border border-accent/20 font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Regalo</span>' : ''}
+                </div>
+                <div class="text-[10px] text-outline mt-1 flex gap-3 flex-wrap font-medium">
+                  <span>Próximo pago: <strong class="text-primary">${item.nextPaymentDate || 'N/A'}</strong> ${item.nextPaymentAmount ? `(${item.nextPaymentAmount})` : ''}</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 md:flex md:items-center gap-6 text-right shrink-0">
+                <div class="md:w-20">
+                  <span class="block text-[8px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
+                  <span class="text-xs font-bold text-primary">€${item.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div class="md:w-20">
+                  <span class="block text-[8px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pagado</span>
+                  <span class="text-xs font-bold text-success">€${item.paid.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div class="md:w-20">
+                  <span class="block text-[8px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pendiente</span>
+                  <span class="text-xs font-bold text-error">€${itemPending.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-end gap-1.5 shrink-0 border-l border-outline-variant/10 pl-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <button class="edit-item-btn text-outline hover:text-accent p-1 focus:outline-none" title="Editar">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+                <button class="delete-item-btn text-outline hover:text-error p-1 focus:outline-none" title="Eliminar">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </div>
+            </div>
+          `;
+
+          const triggerEdit = () => {
+            editingItemId = item.id;
+            renderAll();
+          };
+
+          itemEl.querySelector('.item-concept-click').addEventListener('click', triggerEdit);
+          itemEl.querySelector('.edit-item-btn').addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            triggerEdit();
+          });
+
+          itemEl.querySelector('.delete-item-btn').addEventListener('click', async (e) => {
+            e.currentTarget.blur();
+            if (confirm(`¿Estás seguro de que deseas eliminar "${item.concept}" del presupuesto?`)) {
+              await db.deleteWeddingBudgetItem(item.id);
+            }
+          });
+        }
+
+        itemsList.appendChild(itemEl);
+      });
+    });
+  };
+
+  const renderAll = () => {
+    renderKPIs();
+    renderBanquete();
+    renderBudgetList();
+  };
+
+  // Sincronizar Invitados y Catering Cost Pax
+  const triggerSaveParams = async () => {
+    const inputGuests = document.getElementById('input-wedding-guests');
+    const inputCostPax = document.getElementById('input-catering-cost-pax');
+    if (!inputGuests || !inputCostPax) return;
+
+    const count = parseInt(inputGuests.value) || 0;
+    const pricePerPax = parseFloat(inputCostPax.value) || 0;
+    await db.updateWeddingGuests(count, pricePerPax);
+  };
+
+  const saveBtn = document.getElementById('save-params-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async (e) => {
+      e.currentTarget.blur();
+      await triggerSaveParams();
+    });
+  }
+
+  const inputGuests = document.getElementById('input-wedding-guests');
+  const inputCostPax = document.getElementById('input-catering-cost-pax');
+  if (inputGuests) {
+    inputGuests.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        inputGuests.blur();
+        await triggerSaveParams();
+      }
+    });
+  }
+  if (inputCostPax) {
+    inputCostPax.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        inputCostPax.blur();
+        await triggerSaveParams();
+      }
+    });
+  }
+
+  // Toggle del Formulario para Añadir Concepto
+  const toggleBtn = document.getElementById('toggle-budget-form-btn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.target.blur();
+      const formContainer = document.getElementById('add-budget-form-container');
+      const btnIcon = document.getElementById('budget-form-btn-icon');
+      const btnText = document.getElementById('budget-form-btn-text');
+
+      if (formContainer.classList.contains('hidden')) {
+        formContainer.classList.remove('hidden');
+        btnIcon.innerText = 'close';
+        btnText.innerText = 'Cancelar';
+      } else {
+        formContainer.classList.add('hidden');
+        btnIcon.innerText = 'add';
+        btnText.innerText = 'Nuevo Concepto';
+      }
+    });
+  }
+
+  // Submit Formulario Añadir Concepto
+  const form = document.getElementById('add-budget-item-form');
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const descEl = document.getElementById('wedding-exp-desc');
-      const amountEl = document.getElementById('wedding-exp-amount');
-      const payerEl = document.getElementById('wedding-exp-payer');
+      
+      const catSelect = document.getElementById('budget-item-category');
+      const conceptInput = document.getElementById('budget-item-concept');
+      const totalInput = document.getElementById('budget-item-total');
+      const paidInput = document.getElementById('budget-item-paid');
+      const nextDateInput = document.getElementById('budget-item-next-date');
+      const nextAmountInput = document.getElementById('budget-item-next-amount');
+      const isGiftCheckbox = document.getElementById('budget-item-is-gift');
 
-      const desc = `Boda: ${descEl.value.trim()}`;
-      const amount = parseFloat(amountEl.value);
-      const payer = payerEl.value;
+      const total = parseFloat(totalInput.value) || 0;
+      const paid = parseFloat(paidInput.value) || 0;
 
-      await db.addExpense(desc, amount, payer);
+      const item = {
+        category: catSelect.value,
+        concept: conceptInput.value.trim(),
+        total,
+        paid,
+        nextPaymentDate: nextDateInput.value.trim(),
+        nextPaymentAmount: nextAmountInput.value.trim(),
+        pending: Math.max(total - paid, 0),
+        isGift: isGiftCheckbox.checked
+      };
 
-      descEl.value = '';
-      amountEl.value = '';
+      await db.addWeddingBudgetItem(item);
     });
   }
 

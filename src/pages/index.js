@@ -33,7 +33,10 @@ let state = {
   activeFinancesFilterAccount: 'all',
   activeFinancesFilterCategory: 'all',
   activeFinancesFilterType: 'all',
-  activeFinancesSearchQuery: ''
+  activeFinancesSearchQuery: '',
+  weddingGuests: 280,
+  weddingCostPax: 90.00,
+  weddingBudget: []
 };
 
 // --- DATA SEED POR DEFECTO (FALLBACK LOCALSTORAGE) ---
@@ -118,19 +121,23 @@ async function loadInitialData() {
       await Promise.race([
         (async () => {
           // 1. Obtener Pareja
-          let { data: parejas, error: parejaErr } = await supabase.from('parejas').select('id').limit(1);
+          let { data: parejas, error: parejaErr } = await supabase.from('parejas').select('id, total_invitados, catering_coste_pax').limit(1);
           if (parejaErr) throw parejaErr;
           
           if (!parejas || parejas.length === 0) {
             const { data: newPareja, error: insErr } = await supabase
               .from('parejas')
-              .insert({ nombre_1: 'Isra', nombre_2: 'Lidia', plan_suscripcion: 'Premium' })
+              .insert({ nombre_1: 'Isra', nombre_2: 'Lidia', plan_suscripcion: 'Premium', total_invitados: 280, catering_coste_pax: 90.00 })
               .select()
               .single();
             if (insErr) throw insErr;
             state.parejaId = newPareja.id;
+            state.weddingGuests = 280;
+            state.weddingCostPax = 90.00;
           } else {
             state.parejaId = parejas[0].id;
+            state.weddingGuests = parejas[0].total_invitados || 280;
+            state.weddingCostPax = parseFloat(parejas[0].catering_coste_pax) || 90.00;
           }
 
           // 2. Cargar Configuración de Módulos (Tratando de unificar compatibilidad)
@@ -337,6 +344,26 @@ async function loadInitialData() {
             ];
           }
 
+          // 13. Presupuesto de Boda
+          let { data: presupuestoData, error: presErr } = await supabase
+            .from('boda_presupuesto')
+            .select('*')
+            .eq('pareja_id', state.parejaId)
+            .order('id', { ascending: true });
+          if (!presErr && presupuestoData) {
+            state.weddingBudget = presupuestoData.map(item => ({
+              id: item.id,
+              category: item.categoria,
+              concept: item.concepto,
+              total: parseFloat(item.presupuesto_total) || 0.00,
+              paid: parseFloat(item.pagado) || 0.00,
+              nextPaymentDate: item.fecha_proximo_pago || '',
+              nextPaymentAmount: item.proximo_pago || '',
+              pending: parseFloat(item.pendiente_final) || 0.00,
+              isGift: item.es_regalo || false
+            }));
+          }
+
           console.log('Datos públicos cargados correctamente desde Supabase.');
         })(),
         timeoutPromise
@@ -348,11 +375,34 @@ async function loadInitialData() {
   }
 
   // FALLBACK LOCALSTORAGE
+  const defaultWeddingBudget = [
+    { id: 1, category: 'BANQUETE', concept: 'Catering (350 pax aprox x ±90€)', total: 31150.00, paid: 1000.00, nextPaymentDate: 'Julio', nextPaymentAmount: '50% del total', pending: 30150.00, isGift: false },
+    { id: 2, category: 'BANQUETE', concept: 'Alquiler Finca', total: 5200.00, paid: 2579.50, nextPaymentDate: 'Julio', nextPaymentAmount: '2.621€', pending: 2621.00, isGift: false },
+    { id: 3, category: 'BANQUETE', concept: 'Fianza La Carreña', total: 500.00, paid: 0.00, nextPaymentDate: 'Julio', nextPaymentAmount: '', pending: 500.00, isGift: false },
+    { id: 4, category: 'BANQUETE', concept: 'Iluminación', total: 3086.00, paid: 382.50, nextPaymentDate: 'Agosto', nextPaymentAmount: '2.704€', pending: 2704.00, isGift: false },
+    { id: 5, category: 'FIESTA', concept: 'DJ + Sonido (Equipo extra)', total: 2257.00, paid: 346.67, nextPaymentDate: 'Agosto', nextPaymentAmount: '1.910€', pending: 1910.00, isGift: false },
+    { id: 6, category: 'FIESTA', concept: 'Autobuses (2-3 unidades)', total: 1500.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '1.500€', pending: 1500.00, isGift: false },
+    { id: 7, category: 'FIESTA', concept: 'Fotocool', total: 630.00, paid: 50.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '580€', pending: 580.00, isGift: false },
+    { id: 8, category: 'FOTO/VIDEO', concept: 'Pack Fotografía y Vídeo', total: 2300.00, paid: 300.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '2.000€', pending: 2000.00, isGift: false },
+    { id: 9, category: 'IGLESIA', concept: 'Donación Iglesia', total: 400.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '400€', pending: 400.00, isGift: false },
+    { id: 10, category: 'IGLESIA', concept: 'Flores Iglesia y Finca', total: 1000.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '1.000€', pending: 1000.00, isGift: false },
+    { id: 11, category: 'IGLESIA', concept: 'Expediente y Alianzas', total: 100.00, paid: 0.00, nextPaymentDate: '', nextPaymentAmount: '100€', pending: 100.00, isGift: false },
+    { id: 12, category: 'IMAGEN', concept: 'Vestido Novia + Arreglos', total: 2390.00, paid: 1195.00, nextPaymentDate: 'Julio', nextPaymentAmount: '', pending: 1195.00, isGift: true },
+    { id: 13, category: 'IMAGEN', concept: 'Traje Novio', total: 1440.00, paid: 740.00, nextPaymentDate: 'Junio', nextPaymentAmount: '700€', pending: 700.00, isGift: false },
+    { id: 14, category: 'IMAGEN', concept: 'Maquillaje y Peluquería', total: 350.00, paid: 50.00, nextPaymentDate: 'Agosto', nextPaymentAmount: '300€', pending: 300.00, isGift: false },
+    { id: 15, category: 'REGALOS', concept: 'Invitaciones y Cartelería', total: 550.00, paid: 130.00, nextPaymentDate: '', nextPaymentAmount: '420€', pending: 420.00, isGift: false },
+    { id: 16, category: 'REGALOS', concept: 'Regalos Invitados', total: 1300.00, paid: 86.52, nextPaymentDate: '', nextPaymentAmount: '1.213€', pending: 1213.00, isGift: false },
+    { id: 17, category: 'VIAJE', concept: 'Viaje', total: 7684.00, paid: 5239.21, nextPaymentDate: 'pronto', nextPaymentAmount: '2.445€', pending: 2445.00, isGift: false }
+  ];
+
   state.modulesConfig = JSON.parse(localStorage.getItem('state_modules_config')) || defaultModulesConfig;
   state.shopping = JSON.parse(localStorage.getItem('state_shopping')) || defaultShopping;
   state.weddingTasks = JSON.parse(localStorage.getItem('state_wedding')) || defaultWeddingTasks;
   state.events = JSON.parse(localStorage.getItem('state_events')) || defaultEvents;
   state.savingsGoal = JSON.parse(localStorage.getItem('state_savings_goal')) || { id: null, name: 'Ahorros Viaje', target: 5000, current: 4250, deadline: '2026-08-16' };
+  state.weddingGuests = JSON.parse(localStorage.getItem('state_wedding_guests')) || 280;
+  state.weddingCostPax = JSON.parse(localStorage.getItem('state_wedding_cost_pax')) || 90.00;
+  state.weddingBudget = JSON.parse(localStorage.getItem('state_wedding_budget')) || defaultWeddingBudget;
   
   const defaultTripTasks = [
     { id: 1, title: 'Reservar vuelos internacionales', category: 'Reservas', completed: true },
@@ -397,6 +447,10 @@ function saveToLocalStorage() {
   localStorage.setItem('state_finances_categories', JSON.stringify(state.financesCategories));
   localStorage.setItem('state_finances_subcategories', JSON.stringify(state.financesSubcategories));
   localStorage.setItem('state_finances_transactions', JSON.stringify(state.financesTransactions));
+  
+  localStorage.setItem('state_wedding_guests', JSON.stringify(state.weddingGuests));
+  localStorage.setItem('state_wedding_cost_pax', JSON.stringify(state.weddingCostPax));
+  localStorage.setItem('state_wedding_budget', JSON.stringify(state.weddingBudget));
 }
 
 // --- INTERFAZ DE BASE DE DATOS UNIFICADA (DB INTERFACE) CON ACTUALIZACIONES OPTIMISTAS ---
@@ -1106,6 +1160,129 @@ export const db = {
       if (error) {
         console.error('Error Supabase:', error);
         state.events = originalEvents;
+        triggerRerender();
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  // --- PRESUPUESTO BODA ---
+  async updateWeddingGuests(count, pricePerPax) {
+    state.weddingGuests = count;
+    if (pricePerPax !== undefined) {
+      state.weddingCostPax = pricePerPax;
+    }
+    triggerRerender();
+
+    if (supabase && state.parejaId) {
+      const { error } = await supabase
+        .from('parejas')
+        .update({ 
+          total_invitados: count, 
+          catering_coste_pax: pricePerPax !== undefined ? pricePerPax : state.weddingCostPax 
+        })
+        .eq('id', state.parejaId);
+      if (error) console.error('Error Supabase:', error);
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  async addWeddingBudgetItem(item) {
+    const tempId = -Date.now();
+    const newItem = { id: tempId, ...item };
+    state.weddingBudget.push(newItem);
+    triggerRerender();
+
+    if (supabase && state.parejaId) {
+      try {
+        const { data, error } = await supabase
+          .from('boda_presupuesto')
+          .insert({
+            pareja_id: state.parejaId,
+            categoria: item.category,
+            concepto: item.concept,
+            presupuesto_total: item.total,
+            pagado: item.paid,
+            fecha_proximo_pago: item.nextPaymentDate,
+            proximo_pago: item.nextPaymentAmount,
+            pendiente_final: item.pending,
+            es_regalo: item.isGift
+          })
+          .select()
+          .single();
+        if (!error && data) {
+          state.weddingBudget = state.weddingBudget.map(b => b.id === tempId ? {
+            id: data.id,
+            category: data.categoria,
+            concept: data.concepto,
+            total: parseFloat(data.presupuesto_total) || 0.00,
+            paid: parseFloat(data.pagado) || 0.00,
+            nextPaymentDate: data.fecha_proximo_pago || '',
+            nextPaymentAmount: data.proximo_pago || '',
+            pending: parseFloat(data.pendiente_final) || 0.00,
+            isGift: data.es_regalo || false
+          } : b);
+          triggerRerender();
+          return;
+        }
+        console.error('Error Supabase:', error);
+      } catch (err) {
+        console.error('Excepción Supabase:', err);
+      }
+      state.weddingBudget = state.weddingBudget.filter(b => b.id !== tempId);
+      triggerRerender();
+    } else {
+      newItem.id = Date.now();
+      state.weddingBudget = state.weddingBudget.map(b => b.id === tempId ? newItem : b);
+      saveToLocalStorage();
+      triggerRerender();
+    }
+  },
+
+  async updateWeddingBudgetItem(id, item) {
+    const original = [...state.weddingBudget];
+    state.weddingBudget = state.weddingBudget.map(b => b.id === id ? { ...b, ...item } : b);
+    triggerRerender();
+
+    if (supabase) {
+      const { error } = await supabase
+        .from('boda_presupuesto')
+        .update({
+          categoria: item.category,
+          concepto: item.concept,
+          presupuesto_total: item.total,
+          pagado: item.paid,
+          fecha_proximo_pago: item.nextPaymentDate,
+          proximo_pago: item.nextPaymentAmount,
+          pendiente_final: item.pending,
+          es_regalo: item.isGift
+        })
+        .eq('id', id);
+      if (error) {
+        console.error('Error Supabase:', error);
+        state.weddingBudget = original;
+        triggerRerender();
+      }
+    } else {
+      saveToLocalStorage();
+    }
+  },
+
+  async deleteWeddingBudgetItem(id) {
+    const original = [...state.weddingBudget];
+    state.weddingBudget = state.weddingBudget.filter(b => b.id !== id);
+    triggerRerender();
+
+    if (supabase) {
+      const { error } = await supabase
+        .from('boda_presupuesto')
+        .delete()
+        .eq('id', id);
+      if (error) {
+        console.error('Error Supabase:', error);
+        state.weddingBudget = original;
         triggerRerender();
       }
     } else {
