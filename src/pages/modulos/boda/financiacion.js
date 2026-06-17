@@ -40,7 +40,7 @@ export function render(state) {
           </div>
           <div>
             <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Global</span>
-            <span id="kpi-total-global" class="text-xl font-black text-primary">€0,00</span>
+            <span id="kpi-total-global" class="text-xl font-black text-primary">0,00 €</span>
             <span class="text-xs text-outline block mt-0.5">Suma de todo el presupuesto</span>
           </div>
         </div>
@@ -52,7 +52,7 @@ export function render(state) {
           </div>
           <div>
             <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
-            <span id="kpi-total-real" class="text-xl font-black text-accent">€0,00</span>
+            <span id="kpi-total-real" class="text-xl font-black text-accent">0,00 €</span>
             <span class="text-xs text-outline block mt-0.5">Excluyendo regalos</span>
           </div>
         </div>
@@ -65,13 +65,13 @@ export function render(state) {
             </div>
             <div class="min-w-0">
               <span class="text-xs text-outline font-bold uppercase tracking-wider block">Neto Pareja (Sin Cubierto)</span>
-              <span id="kpi-total-neto" class="text-xl font-black text-wine">€0,00</span>
+              <span id="kpi-total-neto" class="text-xl font-black text-wine">0,00 €</span>
             </div>
           </div>
           <div class="w-full">
             <div class="flex justify-between items-center text-xs font-bold text-outline mb-1">
               <span id="kpi-neto-pct-text">0% pagado</span>
-              <span id="kpi-neto-values-text">€0 / €0</span>
+              <span id="kpi-neto-values-text">0 € / 0 €</span>
             </div>
             <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
               <div id="kpi-neto-bar" class="h-full bg-wine rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -87,13 +87,13 @@ export function render(state) {
             </div>
             <div class="min-w-0">
               <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Pagado</span>
-              <span id="kpi-total-pagado" class="text-xl font-black text-primary">€0,00</span>
+              <span id="kpi-total-pagado" class="text-xl font-black text-primary">0,00 €</span>
             </div>
           </div>
           <div class="w-full">
             <div class="flex justify-between items-center text-xs font-bold text-outline mb-1">
               <span id="kpi-pagado-pct-text">0% pagado</span>
-              <span id="kpi-pagado-values-text">€0 / €0</span>
+              <span id="kpi-pagado-values-text">0 € / 0 €</span>
             </div>
             <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
               <div id="kpi-pagado-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -108,7 +108,7 @@ export function render(state) {
           </div>
           <div>
             <span class="text-xs text-outline font-bold uppercase tracking-wider block">Pendiente Real</span>
-            <span id="kpi-pendiente-real" class="text-xl font-black text-error">€0,00</span>
+            <span id="kpi-pendiente-real" class="text-xl font-black text-error">0,00 €</span>
             <span class="text-xs text-outline block mt-0.5">Restante por liquidar</span>
           </div>
         </div>
@@ -179,7 +179,7 @@ export function render(state) {
 
             <div class="mt-5 pt-4 border-t border-outline-variant/15 flex flex-col gap-1 text-center bg-background/50 rounded-xl p-3.5">
               <span class="text-xs text-outline font-bold uppercase">Coste Real de la Boda por Invitado</span>
-              <span id="wedding-total-pax-cost" class="text-xl font-black text-accent">€0,00</span>
+              <span id="wedding-total-pax-cost" class="text-xl font-black text-accent">0,00 €</span>
               <span class="text-xs text-outline font-medium">Boda completa (sin regalos) / invitados</span>
             </div>
           `
@@ -194,6 +194,10 @@ export function render(state) {
               <h3 class="text-lg font-bold text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined">list_alt</span> Desglose de Gastos
               </h3>
+            </div>
+
+            <!-- Botón Nuevo Concepto colocado justo encima del desglose de gastos -->
+            <div class="flex justify-end mb-4">
               <button id="toggle-budget-form-btn" class="bg-accent hover:bg-accent/90 text-white font-semibold text-xs px-5 py-2.5 rounded-full transition-all flex items-center gap-2 shadow-md focus:ring-0 focus:outline-none shrink-0">
                 <span class="material-symbols-outlined text-[16px]" id="budget-form-btn-icon">add</span>
                 <span id="budget-form-btn-text">Nuevo Concepto</span>
@@ -236,7 +240,7 @@ export function render(state) {
                 <div class="flex items-center justify-between border-t border-outline-variant/10 pt-4 flex-wrap gap-4">
                   <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" id="budget-item-is-gift" class="rounded border-outline-variant text-accent focus:ring-0 w-4 h-4 cursor-pointer" />
-                    <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-[10px] text-outline font-normal">(no cuenta en el gasto real de la pareja)</span></span>
+                    <span class="text-xs font-bold text-primary">¿Es un regalo? <span class="text-xs text-outline font-normal">(no cuenta en el gasto real de la pareja)</span></span>
                   </label>
                   ${Button({ text: 'Añadir Concepto', icon: 'check', className: 'px-5 py-2.5 text-xs focus:ring-0 focus:outline-none' })}
                 </div>
@@ -392,7 +396,7 @@ export function init(state, db) {
     if (tbody) {
       tbody.innerHTML = `
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x ${C.toLocaleString('es-ES', eurFormatNoDec)})</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x ${C.toLocaleString('es-ES', eurFormat)})</td>
           <td class="py-3.5 px-3 text-right font-bold text-primary">${cateringTotalVal.toLocaleString('es-ES', eurFormat)}</td>
           <td class="py-3.5 px-3 text-right font-bold text-accent">${cateringPaxVal.toLocaleString('es-ES', eurFormat)}</td>
         </tr>
@@ -437,6 +441,17 @@ export function init(state, db) {
 
     const categories = ['BANQUETE', 'FIESTA', 'FOTO/VIDEO', 'IGLESIA', 'IMAGEN', 'REGALOS', 'VIAJE', 'OTROS'];
     const eurFormat = { style: 'currency', currency: 'EUR' };
+
+    // Helper para formatear cantidades del próximo pago si son numéricas
+    const formatNextPaymentAmount = (val) => {
+      if (!val) return '';
+      const cleanVal = val.replace(/[€\s]/g, '').replace(',', '.');
+      const num = parseFloat(cleanVal);
+      if (!isNaN(num) && isFinite(num) && /^[0-9.,]+$/.test(cleanVal)) {
+        return num.toLocaleString('es-ES', eurFormat);
+      }
+      return val;
+    };
 
     categories.forEach(catName => {
       const catItems = budget.filter(item => {
@@ -493,7 +508,7 @@ export function init(state, db) {
             <div class="bg-surface/50 p-4 rounded-xl border border-outline-variant/30 space-y-4 my-3 transition-all">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div class="md:col-span-2">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
                   <select id="edit-category-${item.id}" class="w-full bg-background border-none rounded-lg px-2 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold">
                     <option value="BANQUETE" ${item.category === 'BANQUETE' ? 'selected' : ''}>Banquete</option>
                     <option value="FIESTA" ${item.category === 'FIESTA' ? 'selected' : ''}>Fiesta</option>
@@ -506,23 +521,23 @@ export function init(state, db) {
                   </select>
                 </div>
                 <div class="md:col-span-3">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Concepto / Proveedor</label>
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Concepto / Proveedor</label>
                   <input type="text" id="edit-concept-${item.id}" value="${item.concept}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold" required />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Presupuesto (€)</label>
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Presupuesto (€)</label>
                   <input type="number" step="0.01" id="edit-total-${item.id}" value="${item.total}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Pagado (€)</label>
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Pagado (€)</label>
                   <input type="number" step="0.01" id="edit-paid-${item.id}" value="${item.paid}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline font-semibold text-right" required />
                 </div>
                 <div class="md:col-span-1">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Vto. Pago</label>
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Vto. Pago</label>
                   <input type="text" id="edit-next-date-${item.id}" value="${item.nextPaymentDate}" class="w-full bg-background border-none rounded-lg px-2 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Julio" />
                 </div>
                 <div class="md:col-span-2">
-                  <label class="block text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Importe Prox. Pago</label>
+                  <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Importe Prox. Pago</label>
                   <input type="text" id="edit-next-amount-${item.id}" value="${item.nextPaymentAmount}" class="w-full bg-background border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-accent text-outline" placeholder="Ej: 2.621€" />
                 </div>
               </div>
@@ -597,27 +612,27 @@ export function init(state, db) {
           // MODO LECTURA NORMAL (Visualmente individualizados como tarjetas con separación clara)
           const itemPending = Math.max(item.total - item.paid, 0);
           itemEl.innerHTML = `
-            <div class="flex flex-col md:flex-row md:items-center justify-between py-3.5 px-4 hover:bg-white/70 transition-all rounded-xl group gap-4 border border-outline-variant/10 bg-background/5 mb-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div class="flex flex-col md:flex-row md:items-center justify-between p-4 hover:bg-white hover:border-l-primary hover:shadow-linen transition-all duration-200 rounded-xl group gap-4 border border-outline-variant/20 border-l-4 border-l-primary/30 bg-background/20 mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2.5 flex-wrap">
                   <span class="font-bold text-sm text-primary cursor-pointer hover:underline item-concept-click" title="Clic para editar">${item.concept}</span>
-                  ${item.isGift ? '<span class="text-[10px] bg-accent/10 text-accent border border-accent/20 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Regalo</span>' : ''}
+                  ${item.isGift ? '<span class="text-xs bg-accent/10 text-accent border border-accent/20 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Regalo</span>' : ''}
                 </div>
                 <div class="text-xs text-outline mt-1.5 flex gap-3 flex-wrap font-semibold">
-                  <span>Próximo pago: <strong class="text-primary">${item.nextPaymentDate || 'N/A'}</strong> ${item.nextPaymentAmount ? `(${item.nextPaymentAmount})` : ''}</span>
+                  <span>Próximo pago: <strong class="text-primary">${item.nextPaymentDate || 'N/A'}</strong> ${item.nextPaymentAmount ? `(${formatNextPaymentAmount(item.nextPaymentAmount)})` : ''}</span>
                 </div>
               </div>
               <div class="grid grid-cols-3 md:flex md:items-center gap-6 text-right shrink-0">
                 <div class="md:w-24">
-                  <span class="block text-[9px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
+                  <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
                   <span class="text-sm font-bold text-primary">${item.total.toLocaleString('es-ES', eurFormat)}</span>
                 </div>
                 <div class="md:w-24">
-                  <span class="block text-[9px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pagado</span>
+                  <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pagado</span>
                   <span class="text-sm font-bold text-success">${item.paid.toLocaleString('es-ES', eurFormat)}</span>
                 </div>
                 <div class="md:w-24">
-                  <span class="block text-[9px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pendiente</span>
+                  <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pendiente</span>
                   <span class="text-sm font-bold text-error">${itemPending.toLocaleString('es-ES', eurFormat)}</span>
                 </div>
               </div>
