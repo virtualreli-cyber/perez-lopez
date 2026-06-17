@@ -6,6 +6,7 @@ import { render as renderAjustes, init as initAjustes } from './modulos/ajustes.
 import { render as renderBodaTareas, init as initBodaTareas } from './modulos/boda/tareas.js';
 import { render as renderBodaViaje, init as initBodaViaje } from './modulos/boda/viaje.js';
 import { render as renderBodaFinanciacion, init as initBodaFinanciacion } from './modulos/boda/financiacion.js';
+import { render as renderBodaExcel, init as initBodaExcel } from './modulos/boda/excel.js';
 import { render as renderHogarCompras, init as initHogarCompras } from './modulos/hogar/compras.js';
 import { render as renderEventos, init as initEventos } from './modulos/eventos/eventos.js';
 import { render as renderFinanzasResumen, init as initFinanzasResumen } from './modulos/finanzas/resumen.js';
@@ -1567,6 +1568,7 @@ const routes = {
   '#/boda/tareas': { render: renderBodaTareas, init: initBodaTareas, tab: 'boda/tareas' },
   '#/boda/viaje': { render: renderBodaViaje, init: initBodaViaje, tab: 'boda/viaje' },
   '#/boda/financiacion': { render: renderBodaFinanciacion, init: initBodaFinanciacion, tab: 'boda/financiacion' },
+  '#/boda/excel': { render: renderBodaExcel, init: initBodaExcel, tab: 'boda/excel' },
   '#/hogar/compras': { render: renderHogarCompras, init: initHogarCompras, tab: 'hogar/compras' },
   '#/finanzas/resumen': { render: renderFinanzasResumen, init: initFinanzasResumen, tab: 'finanzas/resumen' },
   '#/finanzas/transacciones': { render: renderFinanzasTransacciones, init: initFinanzasTransacciones, tab: 'finanzas/transacciones' },
