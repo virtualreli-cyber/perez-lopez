@@ -31,10 +31,10 @@ export function render(state) {
     <!-- Cuadrícula Principal del Dashboard -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-8">
       
-      <!-- KPIs Resumen en la parte superior (5 Columnas) -->
-      <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+      <!-- KPIs Resumen en la parte superior (3 Columnas) -->
+      <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- KPI 1: Total Global -->
-        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4 shadow-sm">
           <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
             <span class="material-symbols-outlined">payments</span>
           </div>
@@ -45,20 +45,30 @@ export function render(state) {
           </div>
         </div>
 
-        <!-- KPI 2: Total Real (sin regalos) -->
-        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
-            <span class="material-symbols-outlined">account_balance_wallet</span>
+        <!-- KPI 2: Total Real (Pareja) con barra de progreso -->
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2 shadow-sm">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+            </div>
+            <div class="min-w-0">
+              <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
+              <span id="kpi-total-real" class="text-xl font-black text-accent">0,00 €</span>
+            </div>
           </div>
-          <div>
-            <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
-            <span id="kpi-total-real" class="text-xl font-black text-accent">0,00 €</span>
-            <span class="text-xs text-outline block mt-0.5">Excluyendo regalos</span>
+          <div class="w-full">
+            <div class="flex justify-between items-center text-xs font-bold text-outline mb-1">
+              <span id="kpi-real-pct-text">0% pagado</span>
+              <span id="kpi-real-values-text">0 € / 0 €</span>
+            </div>
+            <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
+              <div id="kpi-real-bar" class="h-full bg-accent rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
           </div>
         </div>
 
         <!-- KPI 3: Presupuesto Neto (sin cubierto) -->
-        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2">
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2 shadow-sm">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-wine/10 flex items-center justify-center text-wine shrink-0">
               <span class="material-symbols-outlined">savings</span>
@@ -76,40 +86,6 @@ export function render(state) {
             <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
               <div id="kpi-neto-bar" class="h-full bg-wine rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-          </div>
-        </div>
-
-        <!-- KPI 4: Total Pagado (sin regalos) -->
-        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-              <span class="material-symbols-outlined">price_check</span>
-            </div>
-            <div class="min-w-0">
-              <span class="text-xs text-outline font-bold uppercase tracking-wider block">Total Pagado</span>
-              <span id="kpi-total-pagado" class="text-xl font-black text-primary">0,00 €</span>
-            </div>
-          </div>
-          <div class="w-full">
-            <div class="flex justify-between items-center text-xs font-bold text-outline mb-1">
-              <span id="kpi-pagado-pct-text">0% pagado</span>
-              <span id="kpi-pagado-values-text">0 € / 0 €</span>
-            </div>
-            <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
-              <div id="kpi-pagado-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI 5: Pendiente Real -->
-        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-error/10 flex items-center justify-center text-error shrink-0">
-            <span class="material-symbols-outlined">pending_actions</span>
-          </div>
-          <div>
-            <span class="text-xs text-outline font-bold uppercase tracking-wider block">Pendiente Real</span>
-            <span id="kpi-pendiente-real" class="text-xl font-black text-error">0,00 €</span>
-            <span class="text-xs text-outline block mt-0.5">Restante por liquidar</span>
           </div>
         </div>
       </div>
@@ -276,6 +252,16 @@ export function init(state, db) {
     });
   };
 
+  // Formateador dinámico de moneda: oculta céntimos si es entero para ahorrar espacio en móviles
+  const formatCurrency = (val) => {
+    return val.toLocaleString('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: val % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2
+    });
+  };
+
   const renderKPIs = () => {
     const budget = getFilteredBudget();
     const N = state.weddingGuests || 280;
@@ -287,7 +273,6 @@ export function init(state, db) {
     // 2. Total Real de la Pareja (excluyendo regalos)
     const totalReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.total, 0);
     const totalPagadoReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.paid, 0);
-    const pendienteReal = Math.max(totalReal - totalPagadoReal, 0);
     const pctPagado = totalReal > 0 ? ((totalPagadoReal / totalReal) * 100).toFixed(1) : '0.0';
 
     // 3. Neto Pareja (Descontando todo lo cubierto por los cubiertos/banquete de los invitados)
@@ -325,32 +310,25 @@ export function init(state, db) {
     // Rellenar elementos DOM
     const elGlobal = document.getElementById('kpi-total-global');
     const elReal = document.getElementById('kpi-total-real');
-    const elPagado = document.getElementById('kpi-total-pagado');
-    const elPendiente = document.getElementById('kpi-pendiente-real');
-    const elPctText = document.getElementById('kpi-pagado-pct-text');
-    const elValText = document.getElementById('kpi-pagado-values-text');
-    const elBar = document.getElementById('kpi-pagado-bar');
-
     const elNeto = document.getElementById('kpi-total-neto');
     const elNetoPctText = document.getElementById('kpi-neto-pct-text');
     const elNetoValText = document.getElementById('kpi-neto-values-text');
     const elNetoBar = document.getElementById('kpi-neto-bar');
 
-    const eurFormat = { style: 'currency', currency: 'EUR' };
-    const eurFormatNoDec = { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 };
+    const elRealPctText = document.getElementById('kpi-real-pct-text');
+    const elRealValText = document.getElementById('kpi-real-values-text');
+    const elRealBar = document.getElementById('kpi-real-bar');
 
-    if (elGlobal) elGlobal.innerText = totalGlobal.toLocaleString('es-ES', eurFormat);
-    if (elReal) elReal.innerText = totalReal.toLocaleString('es-ES', eurFormat);
-    if (elPagado) elPagado.innerText = totalPagadoReal.toLocaleString('es-ES', eurFormat);
-    if (elPendiente) elPendiente.innerText = pendienteReal.toLocaleString('es-ES', eurFormat);
+    if (elGlobal) elGlobal.innerText = formatCurrency(totalGlobal);
+    if (elReal) elReal.innerText = formatCurrency(totalReal);
     
-    if (elPctText) elPctText.innerText = `${pctPagado}% pagado`;
-    if (elValText) elValText.innerText = `${totalPagadoReal.toLocaleString('es-ES', eurFormatNoDec)} / ${totalReal.toLocaleString('es-ES', eurFormatNoDec)}`;
-    if (elBar) elBar.style.width = `${Math.min(parseFloat(pctPagado), 100)}%`;
+    if (elRealPctText) elRealPctText.innerText = `${pctPagado}% pagado`;
+    if (elRealValText) elRealValText.innerText = `${formatCurrency(totalPagadoReal)} / ${formatCurrency(totalReal)}`;
+    if (elRealBar) elRealBar.style.width = `${Math.min(parseFloat(pctPagado), 100)}%`;
 
-    if (elNeto) elNeto.innerText = totalSinCubierto.toLocaleString('es-ES', eurFormat);
+    if (elNeto) elNeto.innerText = formatCurrency(totalSinCubierto);
     if (elNetoPctText) elNetoPctText.innerText = `${pctNeto}% pagado`;
-    if (elNetoValText) elNetoValText.innerText = `${paidSinCubierto.toLocaleString('es-ES', eurFormatNoDec)} / ${totalSinCubierto.toLocaleString('es-ES', eurFormatNoDec)}`;
+    if (elNetoValText) elNetoValText.innerText = `${formatCurrency(paidSinCubierto)} / ${formatCurrency(totalSinCubierto)}`;
     if (elNetoBar) elNetoBar.style.width = `${Math.min(parseFloat(pctNeto), 100)}%`;
   };
 
@@ -389,36 +367,33 @@ export function init(state, db) {
     const djPaxVal = N > 0 ? djTotal / N : 0;
     const banquetePaxVal = cateringPaxVal + fincaPaxVal + ilumPaxVal + djPaxVal;
 
-    const eurFormat = { style: 'currency', currency: 'EUR' };
-    const eurFormatNoDec = { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 };
-
     const tbody = document.getElementById('banquete-breakdown-rows');
     if (tbody) {
       tbody.innerHTML = `
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
-          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x ${C.toLocaleString('es-ES', eurFormat)})</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">${cateringTotalVal.toLocaleString('es-ES', eurFormat)}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">${cateringPaxVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 font-semibold text-primary">Catering (${N} pax x ${formatCurrency(C)})</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${formatCurrency(cateringTotalVal)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${formatCurrency(cateringPaxVal)}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
           <td class="py-3.5 px-3 font-semibold text-primary">Alquiler Finca (50%)</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">${fincaTotalVal.toLocaleString('es-ES', eurFormat)}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">${fincaPaxVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${formatCurrency(fincaTotalVal)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${formatCurrency(fincaPaxVal)}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
           <td class="py-3.5 px-3 font-semibold text-primary">Iluminación</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">${ilumTotalVal.toLocaleString('es-ES', eurFormat)}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">${ilumPaxVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${formatCurrency(ilumTotalVal)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${formatCurrency(ilumPaxVal)}</td>
         </tr>
         <tr class="hover:bg-white/30 transition-all border-b border-outline-variant/5">
           <td class="py-3.5 px-3 font-semibold text-primary">DJ + Sonido</td>
-          <td class="py-3.5 px-3 text-right font-bold text-primary">${djTotalVal.toLocaleString('es-ES', eurFormat)}</td>
-          <td class="py-3.5 px-3 text-right font-bold text-accent">${djPaxVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-primary">${formatCurrency(djTotalVal)}</td>
+          <td class="py-3.5 px-3 text-right font-bold text-accent">${formatCurrency(djPaxVal)}</td>
         </tr>
         <tr class="font-bold bg-primary/5">
           <td class="py-4 pl-3 text-primary rounded-l-xl">TOTAL BANQUETE</td>
-          <td class="py-4 px-3 text-right text-primary">${banqueteTotalVal.toLocaleString('es-ES', eurFormat)}</td>
-          <td class="py-4 pr-3 text-right text-accent rounded-r-xl">${banquetePaxVal.toLocaleString('es-ES', eurFormat)}</td>
+          <td class="py-4 px-3 text-right text-primary">${formatCurrency(banqueteTotalVal)}</td>
+          <td class="py-4 pr-3 text-right text-accent rounded-r-xl">${formatCurrency(banquetePaxVal)}</td>
         </tr>
       `;
     }
@@ -428,7 +403,7 @@ export function init(state, db) {
     const wholeWeddingPaxCost = N > 0 ? totalReal / N : 0;
     const elWholeCost = document.getElementById('wedding-total-pax-cost');
     if (elWholeCost) {
-      elWholeCost.innerText = `${wholeWeddingPaxCost.toLocaleString('es-ES', eurFormat)} / pax`;
+      elWholeCost.innerText = `${formatCurrency(wholeWeddingPaxCost)} / pax`;
     }
   };
 
@@ -440,7 +415,6 @@ export function init(state, db) {
     const budget = getFilteredBudget();
 
     const categories = ['BANQUETE', 'FIESTA', 'FOTO/VIDEO', 'IGLESIA', 'IMAGEN', 'REGALOS', 'VIAJE', 'OTROS'];
-    const eurFormat = { style: 'currency', currency: 'EUR' };
 
     // Helper para formatear cantidades del próximo pago si son numéricas
     const formatNextPaymentAmount = (val) => {
@@ -448,7 +422,7 @@ export function init(state, db) {
       const cleanVal = val.replace(/[€\s]/g, '').replace(',', '.');
       const num = parseFloat(cleanVal);
       if (!isNaN(num) && isFinite(num) && /^[0-9.,]+$/.test(cleanVal)) {
-        return num.toLocaleString('es-ES', eurFormat);
+        return formatCurrency(num);
       }
       return val;
     };
@@ -483,9 +457,9 @@ export function init(state, db) {
             <span class="text-xs bg-primary/10 text-primary font-bold px-3 py-1 rounded-full">${catItems.length} concepto${catItems.length !== 1 ? 's' : ''}</span>
           </div>
           <div class="text-xs text-outline font-semibold flex items-center gap-4">
-            <span>Total: <strong class="text-primary">${catTotal.toLocaleString('es-ES', eurFormat)}</strong></span>
-            <span class="text-success">Pagado: <strong class="text-success">${catPaid.toLocaleString('es-ES', eurFormat)}</strong></span>
-            <span class="text-error">Pendiente: <strong class="text-error">${catPending.toLocaleString('es-ES', eurFormat)}</strong></span>
+            <span>Total: <strong class="text-primary">${formatCurrency(catTotal)}</strong></span>
+            <span class="text-success">Pagado: <strong class="text-success">${formatCurrency(catPaid)}</strong></span>
+            <span class="text-error">Pendiente: <strong class="text-error">${formatCurrency(catPending)}</strong></span>
           </div>
         </div>
         <div class="pt-2" id="${cleanCatId}">
@@ -612,8 +586,8 @@ export function init(state, db) {
           // MODO LECTURA NORMAL (Visualmente individualizados como tarjetas con separación clara)
           const itemPending = Math.max(item.total - item.paid, 0);
           itemEl.innerHTML = `
-            <div class="flex flex-col md:flex-row md:items-center justify-between p-4 hover:bg-white hover:border-l-primary hover:shadow-linen transition-all duration-200 rounded-xl group gap-4 border border-outline-variant/20 border-l-4 border-l-primary/30 bg-background/20 mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-              <div class="flex-1 min-w-0">
+            <div class="relative flex flex-col md:flex-row md:items-center justify-between p-3.5 md:p-4 pr-12 md:pr-16 hover:bg-white hover:border-l-primary hover:shadow-linen transition-all duration-200 rounded-xl group gap-3 md:gap-4 border border-outline-variant/20 border-l-4 border-l-primary/30 bg-background/20 mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <div class="flex-1 min-w-0 pr-4 md:pr-0">
                 <div class="flex items-center gap-2.5 flex-wrap">
                   <span class="font-bold text-sm text-primary cursor-pointer hover:underline item-concept-click" title="Clic para editar">${item.concept}</span>
                   ${item.isGift ? '<span class="text-xs bg-accent/10 text-accent border border-accent/20 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Regalo</span>' : ''}
@@ -622,21 +596,21 @@ export function init(state, db) {
                   <span>Próximo pago: <strong class="text-primary">${item.nextPaymentDate || 'N/A'}</strong> ${item.nextPaymentAmount ? `(${formatNextPaymentAmount(item.nextPaymentAmount)})` : ''}</span>
                 </div>
               </div>
-              <div class="grid grid-cols-3 md:flex md:items-center gap-6 text-right shrink-0">
+              <div class="grid grid-cols-3 md:flex md:items-center gap-2 md:gap-6 text-right shrink-0">
                 <div class="md:w-24">
                   <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Total</span>
-                  <span class="text-sm font-bold text-primary">${item.total.toLocaleString('es-ES', eurFormat)}</span>
+                  <span class="text-sm font-bold text-primary">${formatCurrency(item.total)}</span>
                 </div>
                 <div class="md:w-24">
                   <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pagado</span>
-                  <span class="text-sm font-bold text-success">${item.paid.toLocaleString('es-ES', eurFormat)}</span>
+                  <span class="text-sm font-bold text-success">${formatCurrency(item.paid)}</span>
                 </div>
                 <div class="md:w-24">
                   <span class="block text-[11px] text-outline font-bold uppercase tracking-wider md:hidden mb-0.5">Pendiente</span>
-                  <span class="text-sm font-bold text-error">${itemPending.toLocaleString('es-ES', eurFormat)}</span>
+                  <span class="text-sm font-bold text-error">${formatCurrency(itemPending)}</span>
                 </div>
               </div>
-              <div class="flex items-center justify-end gap-1.5 shrink-0 border-l border-outline-variant/10 pl-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+              <div class="absolute top-3 right-2.5 md:top-1/2 md:-translate-y-1/2 md:right-4 flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button class="edit-item-btn text-outline hover:text-accent p-1 focus:outline-none" title="Editar">
                   <span class="material-symbols-outlined text-lg">edit</span>
                 </button>
