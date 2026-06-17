@@ -106,7 +106,7 @@ export function render(state) {
             </button>
           </div>
 
-          <div class="flex flex-col gap-2.5" id="events-timeline-list">
+          <div class="flex flex-col gap-4" id="events-timeline-list">
             <!-- Cargado en init() -->
           </div>
         `
@@ -220,207 +220,226 @@ export function init(state, db) {
       return;
     }
 
+    // Agrupar los eventos ordenados por fecha
+    const groups = {};
     sorted.forEach(evt => {
-      const dateObj = new Date(evt.date);
+      if (!groups[evt.date]) {
+        groups[evt.date] = [];
+      }
+      groups[evt.date].push(evt);
+    });
+
+    // Renderizar los grupos de eventos por días
+    Object.keys(groups).forEach(dateStr => {
+      const dateObj = new Date(dateStr + 'T00:00:00');
       const day = dateObj.getDate();
-      const month = dateObj.toLocaleDateString('es-ES', { month: 'short' });
-      const weekday = dateObj.toLocaleDateString('es-ES', { weekday: 'short' });
+      const month = dateObj.toLocaleDateString('es-ES', { month: 'long' });
+      const weekday = dateObj.toLocaleDateString('es-ES', { weekday: 'long' });
+      const isToday = dateStr === todayStr;
 
-      const isPast = evt.date < todayStr;
-      const isCompleted = evt.completed || false;
+      // Contenedor de día
+      const dayContainer = document.createElement('div');
+      dayContainer.className = 'w-full mb-2 last:mb-0';
 
-      // COLOR DE BORDE IZQUIERDO:
-      // - Si está completado: Gris (para indicar que ya no está pendiente)
-      // - Si no está completado: Verde (color de realce/activo)
-      const borderClass = isCompleted ? 'border-l-outline-variant/40' : 'border-l-accent';
-      
-      // Estilo del bloque de fecha:
-      // - Si ya ha pasado la fecha del evento: Fondo grisáceo y texto outline para diferenciarlo de eventos futuros
-      const dateBlockClass = isPast
-        ? 'bg-outline-variant/10 text-outline border-outline-variant/10'
-        : 'bg-background text-primary border-outline-variant/10';
+      // Cabecera del día (estilo agenda de Google)
+      const headerHtml = `
+        <div class="flex items-center gap-2.5 mb-2.5 select-none">
+          <span class="text-xs font-bold text-primary capitalize tracking-wider">${weekday}, ${day} de ${month}</span>
+          ${isToday ? `<span class="bg-accent text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">Hoy</span>` : ''}
+          <div class="flex-1 h-[1px] bg-outline-variant/20"></div>
+        </div>
+      `;
+      dayContainer.innerHTML = headerHtml;
 
-      const titleClass = isCompleted
-        ? 'line-through text-outline font-normal'
-        : 'text-primary font-bold';
+      const itemsList = document.createElement('div');
+      itemsList.className = 'flex flex-col gap-2 pl-1';
 
-      // Colores de texto de badge específicos por categoría
-      const badgeTextColors = {
-        'Social': 'text-accent',
-        'Salud': 'text-primary',
-        'Parroquia': 'text-wine',
-        'Familia': 'text-outline',
-        'Otros': 'text-terracotta'
-      };
-      const badgeColorClass = badgeTextColors[evt.category] || 'text-outline';
+      groups[dateStr].forEach(evt => {
+        const isPast = evt.date < todayStr;
+        const isCompleted = evt.completed || false;
 
-      const isSelected = selectedIds.includes(evt.id);
-      const isEditing = editingEventId === evt.id;
+        // Borde izquierdo estático respecto a selección (solo cambia por completado)
+        const borderClass = isCompleted ? 'border-l-outline-variant/35' : 'border-l-accent';
+        
+        // Oscurecer eventos pasados y darles fondo atenuado
+        const pastClass = isPast 
+          ? 'opacity-55 bg-outline-variant/5 border-outline-variant/10' 
+          : 'bg-surface border-outline-variant/20';
 
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'w-full';
+        const titleClass = isCompleted
+          ? 'line-through text-outline font-normal'
+          : 'text-primary font-bold';
 
-      if (isEditing) {
-        // MODO EDICIÓN INLINE
-        const catOptions = eventCategories.map(cat => 
-          `<option value="${cat}" ${cat === evt.category ? 'selected' : ''}>${cat}</option>`
-        ).join('');
+        // Colores de texto de badge específicos por categoría
+        const badgeTextColors = {
+          'Social': 'text-accent',
+          'Salud': 'text-primary',
+          'Parroquia': 'text-wine',
+          'Familia': 'text-outline',
+          'Otros': 'text-terracotta'
+        };
+        const badgeColorClass = badgeTextColors[evt.category] || 'text-outline';
 
-        itemDiv.innerHTML = `
-          <div class="flex items-center justify-between gap-3 bg-surface rounded-xl p-3 border border-outline-variant/30 border-l-[5px] ${borderClass}">
-            <div class="flex items-center gap-3.5 flex-1 min-w-0">
-              <input type="checkbox" ${isSelected ? 'checked' : ''} data-select-id="${evt.id}"
-                class="select-delete-checkbox rounded border-outline-variant text-error focus:ring-0 focus:ring-offset-0 focus:outline-none w-4 h-4 cursor-pointer transition-all shrink-0"/>
-              
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-2 flex-1 min-w-0">
-                <input type="text" id="edit-event-title-${evt.id}" value="${evt.title}" 
-                  class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent w-full md:max-w-[180px]" required/>
+        const isSelected = selectedIds.includes(evt.id);
+        const isEditing = editingEventId === evt.id;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'w-full';
+
+        if (isEditing) {
+          // MODO EDICIÓN INLINE
+          const catOptions = eventCategories.map(cat => 
+            `<option value="${cat}" ${cat === evt.category ? 'selected' : ''}>${cat}</option>`
+          ).join('');
+
+          itemDiv.innerHTML = `
+            <div class="flex items-center justify-between gap-3 bg-surface rounded-xl p-3 border border-outline-variant/30 border-l-[5px] ${borderClass}">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <input type="checkbox" ${isSelected ? 'checked' : ''} data-select-id="${evt.id}"
+                  class="select-delete-checkbox rounded border-outline-variant text-error focus:ring-0 focus:ring-offset-0 focus:outline-none w-4 h-4 cursor-pointer transition-all shrink-0"/>
                 
-                <input type="date" id="edit-event-date-${evt.id}" value="${evt.date}" 
-                  class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent shrink-0"/>
-                
-                <input type="time" id="edit-event-time-${evt.id}" value="${evt.time}" 
-                  class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent shrink-0"/>
+                <div class="flex flex-col md:flex-row items-start md:items-center gap-2 flex-1 min-w-0">
+                  <input type="text" id="edit-event-title-${evt.id}" value="${evt.title}" 
+                    class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent w-full md:max-w-[180px]" required/>
+                  
+                  <input type="date" id="edit-event-date-${evt.id}" value="${evt.date}" 
+                    class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent shrink-0"/>
+                  
+                  <input type="time" id="edit-event-time-${evt.id}" value="${evt.time}" 
+                    class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent shrink-0"/>
 
-                <select id="edit-event-cat-${evt.id}" class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent shrink-0">
-                  ${catOptions}
-                </select>
+                  <select id="edit-event-cat-${evt.id}" class="bg-background border border-outline-variant/30 rounded-lg px-2 py-1 text-xs text-outline focus:outline-none focus:ring-1 focus:ring-accent shrink-0">
+                    ${catOptions}
+                  </select>
 
-                <div class="flex items-center gap-1 shrink-0">
-                  <button class="save-event-btn text-accent hover:text-accent/80 p-1 focus:outline-none" data-id="${evt.id}" title="Guardar">
-                    <span class="material-symbols-outlined text-base">check</span>
-                  </button>
-                  <button class="cancel-event-btn text-outline hover:text-primary p-1 focus:outline-none" data-id="${evt.id}" title="Cancelar">
-                    <span class="material-symbols-outlined text-base">close</span>
-                  </button>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="save-event-btn text-accent hover:text-accent/80 p-1 focus:outline-none" data-id="${evt.id}" title="Guardar">
+                      <span class="material-symbols-outlined text-base">check</span>
+                    </button>
+                    <button class="cancel-event-btn text-outline hover:text-primary p-1 focus:outline-none" data-id="${evt.id}" title="Cancelar">
+                      <span class="material-symbols-outlined text-base">close</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
 
-        // Eventos Guardar y Cancelar
-        itemDiv.querySelector('.save-event-btn').addEventListener('click', async (e) => {
-          e.currentTarget.blur();
-          const titleVal = itemDiv.querySelector(`#edit-event-title-${evt.id}`).value.trim();
-          const dateVal = itemDiv.querySelector(`#edit-event-date-${evt.id}`).value;
-          const timeVal = itemDiv.querySelector(`#edit-event-time-${evt.id}`).value;
-          const catVal = itemDiv.querySelector(`#edit-event-cat-${evt.id}`).value;
-          if (titleVal && dateVal && timeVal) {
-            await db.updateEvent(evt.id, { title: titleVal, date: dateVal, time: timeVal, category: catVal });
-            editingEventId = null;
-            renderEventsList();
-          }
-        });
-
-        itemDiv.querySelector('.cancel-event-btn').addEventListener('click', (e) => {
-          e.currentTarget.blur();
-          editingEventId = null;
-          renderEventsList();
-        });
-
-        // Soporte de teclas enter y escape
-        const inputs = itemDiv.querySelectorAll('input, select');
-        inputs.forEach(input => {
-          input.addEventListener('keydown', async (e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const titleVal = itemDiv.querySelector(`#edit-event-title-${evt.id}`).value.trim();
-              const dateVal = itemDiv.querySelector(`#edit-event-date-${evt.id}`).value;
-              const timeVal = itemDiv.querySelector(`#edit-event-time-${evt.id}`).value;
-              const catVal = itemDiv.querySelector(`#edit-event-cat-${evt.id}`).value;
-              if (titleVal && dateVal && timeVal) {
-                await db.updateEvent(evt.id, { title: titleVal, date: dateVal, time: timeVal, category: catVal });
-                editingEventId = null;
-                renderEventsList();
-              }
-            } else if (e.key === 'Escape') {
+          // Eventos Guardar y Cancelar
+          itemDiv.querySelector('.save-event-btn').addEventListener('click', async (e) => {
+            e.currentTarget.blur();
+            const titleVal = itemDiv.querySelector(`#edit-event-title-${evt.id}`).value.trim();
+            const dateVal = itemDiv.querySelector(`#edit-event-date-${evt.id}`).value;
+            const timeVal = itemDiv.querySelector(`#edit-event-time-${evt.id}`).value;
+            const catVal = itemDiv.querySelector(`#edit-event-cat-${evt.id}`).value;
+            if (titleVal && dateVal && timeVal) {
+              await db.updateEvent(evt.id, { title: titleVal, date: dateVal, time: timeVal, category: catVal });
               editingEventId = null;
               renderEventsList();
             }
           });
-        });
 
-      } else {
-        // MODO VISTA NORMAL
-        itemDiv.innerHTML = `
-          <div class="flex items-center justify-between gap-3 bg-surface rounded-xl p-3 border border-outline-variant/20 hover:border-outline-variant/40 hover:shadow-sm transition-all border-l-[5px] ${borderClass}">
-            <div class="flex items-center gap-3 flex-1 min-w-0">
-              <!-- Checkbox para Selección de borrado múltiple -->
-              <input type="checkbox" ${isSelected ? 'checked' : ''} data-select-id="${evt.id}" id="event-select-${evt.id}"
-                class="select-delete-checkbox rounded border-outline-variant text-error focus:ring-0 focus:ring-offset-0 focus:outline-none w-4 h-4 cursor-pointer transition-all shrink-0"/>
-
-              <!-- Checkbox para marcar como Completado -->
-              <input type="checkbox" ${isCompleted ? 'checked' : ''} data-toggle-id="${evt.id}" id="event-toggle-${evt.id}"
-                class="rounded-lg border-outline-variant text-accent focus:ring-0 focus:ring-offset-0 focus:outline-none w-5 h-5 transition-colors cursor-pointer checkbox-bounce shrink-0"/>
-
-              <!-- Bloque de Fecha Compacto -->
-              <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg ${dateBlockClass} shrink-0 border cursor-pointer event-clickable" data-id="${evt.id}" title="Haga clic para editar">
-                <span class="text-[9px] font-extrabold text-outline uppercase tracking-wider">${month.replace('.', '')}</span>
-                <span class="text-base font-extrabold -mt-0.5 leading-none">${day}</span>
-              </div>
-              
-              <div class="min-w-0 flex-1 cursor-pointer event-clickable" data-id="${evt.id}" title="Haga clic para editar">
-                <div class="flex items-center gap-2 flex-wrap mb-0.5">
-                  <h4 class="text-sm ${titleClass} truncate leading-snug">${evt.title}</h4>
-                  <span class="inline-block text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-background ${badgeColorClass} border border-outline-variant/5">
-                    ${evt.category}
-                  </span>
-                  ${isPast ? `
-                    <span class="inline-flex items-center gap-0.5 text-[8px] font-bold bg-outline-variant/20 text-outline px-1.5 py-0.5 rounded-md uppercase tracking-wider border border-outline-variant/10">
-                      <span class="material-symbols-outlined text-[10px]">history</span> Pasado
-                    </span>
-                  ` : ''}
-                </div>
-                <p class="text-[10px] text-outline capitalize font-medium flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[12px] text-outline">schedule</span> ${evt.time} hs — ${weekday}
-                </p>
-              </div>
-            </div>
-
-            <button class="delete-btn text-outline hover:text-error lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 shrink-0 focus:ring-0 focus:outline-none" aria-label="Eliminar evento">
-              <span class="material-symbols-outlined text-sm">delete</span>
-            </button>
-          </div>
-        `;
-
-        // Click para editar
-        itemDiv.querySelectorAll('.event-clickable').forEach(el => {
-          el.addEventListener('click', () => {
-            editingEventId = evt.id;
+          itemDiv.querySelector('.cancel-event-btn').addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            editingEventId = null;
             renderEventsList();
           });
-        });
 
-        // Escuchar cambios completar
-        itemDiv.querySelector(`input[data-toggle-id="${evt.id}"]`).addEventListener('change', async (e) => {
-          e.target.blur();
-          const nextState = !evt.completed;
-          await db.toggleEvent(evt.id, nextState);
-        });
+          // Soporte de teclas enter y escape
+          const inputs = itemDiv.querySelectorAll('input, select');
+          inputs.forEach(input => {
+            input.addEventListener('keydown', async (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const titleVal = itemDiv.querySelector(`#edit-event-title-${evt.id}`).value.trim();
+                const dateVal = itemDiv.querySelector(`#edit-event-date-${evt.id}`).value;
+                const timeVal = itemDiv.querySelector(`#edit-event-time-${evt.id}`).value;
+                const catVal = itemDiv.querySelector(`#edit-event-cat-${evt.id}`).value;
+                if (titleVal && dateVal && timeVal) {
+                  await db.updateEvent(evt.id, { title: titleVal, date: dateVal, time: timeVal, category: catVal });
+                  editingEventId = null;
+                  renderEventsList();
+                }
+              } else if (e.key === 'Escape') {
+                editingEventId = null;
+                renderEventsList();
+              }
+            });
+          });
 
-        // Evento selección borrado
-        itemDiv.querySelector(`.select-delete-checkbox`).addEventListener('change', (e) => {
-          e.target.blur();
-          if (e.target.checked) {
-            if (!selectedIds.includes(evt.id)) selectedIds.push(evt.id);
-          } else {
-            selectedIds = selectedIds.filter(id => id !== evt.id);
-          }
-          updateBulkDeleteButton();
-        });
+        } else {
+          // MODO VISTA NORMAL
+          itemDiv.innerHTML = `
+            <div class="flex items-center justify-between gap-3 rounded-xl p-3 border hover:border-outline-variant/40 hover:shadow-sm transition-all border-l-[5px] ${borderClass} ${pastClass}">
+              <div class="flex items-center gap-3.5 flex-1 min-w-0">
+                <!-- Checkbox Selección (Borrado) -->
+                <input type="checkbox" ${isSelected ? 'checked' : ''} data-select-id="${evt.id}" id="event-select-${evt.id}"
+                  class="select-delete-checkbox rounded border-outline-variant text-error focus:ring-0 focus:ring-offset-0 focus:outline-none w-4 h-4 cursor-pointer transition-all shrink-0"/>
 
-        // Eliminar evento individual
-        itemDiv.querySelector('.delete-btn').addEventListener('click', async (e) => {
-          e.currentTarget.blur();
-          if (confirm(`¿Estás seguro de que deseas eliminar el evento "${evt.title}"?`)) {
-            selectedIds = selectedIds.filter(id => id !== evt.id);
-            await db.deleteEvent(evt.id);
-          }
-        });
-      }
+                <!-- Checkbox Completado -->
+                <input type="checkbox" ${isCompleted ? 'checked' : ''} data-toggle-id="${evt.id}" id="event-toggle-${evt.id}"
+                  class="rounded-lg border-outline-variant text-accent focus:ring-0 focus:ring-offset-0 focus:outline-none w-5 h-5 transition-colors cursor-pointer checkbox-bounce shrink-0"/>
 
-      listEl.appendChild(itemDiv);
+                <!-- Hora del Evento -->
+                <span class="text-xs font-bold text-outline shrink-0 w-14 select-none">${evt.time} hs</span>
+
+                <div class="min-w-0 flex-1 cursor-pointer event-clickable" data-id="${evt.id}" title="Haga clic para editar">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="text-sm ${titleClass} truncate leading-snug">${evt.title}</h4>
+                    <span class="inline-block text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-background ${badgeColorClass} border border-outline-variant/5">
+                      ${evt.category}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="delete-btn text-outline hover:text-error lg:opacity-0 lg:group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 shrink-0 focus:ring-0 focus:outline-none" aria-label="Eliminar evento">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          `;
+
+          // Click para editar
+          itemDiv.querySelectorAll('.event-clickable').forEach(el => {
+            el.addEventListener('click', () => {
+              editingEventId = evt.id;
+              renderEventsList();
+            });
+          });
+
+          // Escuchar cambios completar
+          itemDiv.querySelector(`input[data-toggle-id="${evt.id}"]`).addEventListener('change', async (e) => {
+            e.target.blur();
+            const nextState = !evt.completed;
+            await db.toggleEvent(evt.id, nextState);
+          });
+
+          // Evento selección borrado
+          itemDiv.querySelector(`.select-delete-checkbox`).addEventListener('change', (e) => {
+            e.target.blur();
+            if (e.target.checked) {
+              if (!selectedIds.includes(evt.id)) selectedIds.push(evt.id);
+            } else {
+              selectedIds = selectedIds.filter(id => id !== evt.id);
+            }
+            updateBulkDeleteButton();
+          });
+
+          // Eliminar evento individual
+          itemDiv.querySelector('.delete-btn').addEventListener('click', async (e) => {
+            e.currentTarget.blur();
+            if (confirm(`¿Estás seguro de que deseas eliminar el evento "${evt.title}"?`)) {
+              selectedIds = selectedIds.filter(id => id !== evt.id);
+              await db.deleteEvent(evt.id);
+            }
+          });
+        }
+
+        itemsList.appendChild(itemDiv);
+      });
+
+      dayContainer.appendChild(itemsList);
+      listEl.appendChild(dayContainer);
     });
 
     updateBulkDeleteButton();
