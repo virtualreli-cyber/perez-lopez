@@ -84,8 +84,8 @@ export function render(state) {
     <!-- Cuadrícula Principal del Dashboard -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-8">
       
-      <!-- KPIs Resumen en la parte superior -->
-      <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- KPIs Resumen en la parte superior (5 Columnas) -->
+      <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <!-- KPI 1: Total Global -->
         <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -93,8 +93,8 @@ export function render(state) {
           </div>
           <div>
             <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Global</span>
-            <span id="kpi-total-global" class="text-2xl font-bold text-primary">€0,00</span>
-            <span class="text-[10px] text-outline block mt-0.5">Suma de todos los conceptos</span>
+            <span id="kpi-total-global" class="text-xl font-black text-primary">€0,00</span>
+            <span class="text-[9px] text-outline block mt-0.5">Suma de todo el presupuesto</span>
           </div>
         </div>
 
@@ -105,20 +105,42 @@ export function render(state) {
           </div>
           <div>
             <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Real (Pareja)</span>
-            <span id="kpi-total-real" class="text-2xl font-bold text-accent">€0,00</span>
-            <span class="text-[10px] text-outline block mt-0.5">Excluyendo regalos</span>
+            <span id="kpi-total-real" class="text-xl font-black text-accent">€0,00</span>
+            <span class="text-[9px] text-outline block mt-0.5">Excluyendo regalos</span>
           </div>
         </div>
 
-        <!-- KPI 3: Total Pagado (sin regalos) -->
+        <!-- KPI 3: Presupuesto Neto (sin cubierto) -->
         <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2">
           <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-wine/10 flex items-center justify-center text-wine shrink-0">
+              <span class="material-symbols-outlined">savings</span>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Neto Pareja (Sin Cubierto)</span>
+              <span id="kpi-total-neto" class="text-xl font-black text-wine">€0,00</span>
+            </div>
+          </div>
+          <div class="w-full">
+            <div class="flex justify-between items-center text-[9px] font-bold text-outline mb-1">
+              <span id="kpi-neto-pct-text">0% pagado</span>
+              <span id="kpi-neto-values-text">€0 / €0</span>
+            </div>
+            <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
+              <div id="kpi-neto-bar" class="h-full bg-wine rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 4: Total Pagado (sin regalos) -->
+        <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex flex-col justify-between h-full gap-2">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
               <span class="material-symbols-outlined">price_check</span>
             </div>
             <div class="min-w-0">
               <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Total Pagado</span>
-              <span id="kpi-total-pagado" class="text-2xl font-bold text-primary">€0,00</span>
+              <span id="kpi-total-pagado" class="text-xl font-black text-primary">€0,00</span>
             </div>
           </div>
           <div class="w-full">
@@ -127,20 +149,20 @@ export function render(state) {
               <span id="kpi-pagado-values-text">€0 / €0</span>
             </div>
             <div class="w-full h-1.5 bg-outline-variant/20 rounded-full overflow-hidden">
-              <div id="kpi-pagado-bar" class="h-full bg-success rounded-full transition-all duration-500" style="width: 0%"></div>
+              <div id="kpi-pagado-bar" class="h-full bg-primary rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
           </div>
         </div>
 
-        <!-- KPI 4: Pendiente Real -->
+        <!-- KPI 5: Pendiente Real -->
         <div class="bg-surface rounded-2xl p-6 border border-outline-variant/20 shadow-linen flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-error/10 flex items-center justify-center text-error shrink-0">
             <span class="material-symbols-outlined">pending_actions</span>
           </div>
           <div>
             <span class="text-[10px] text-outline font-bold uppercase tracking-wider block">Pendiente Real</span>
-            <span id="kpi-pendiente-real" class="text-2xl font-bold text-error">€0,00</span>
-            <span class="text-[10px] text-outline block mt-0.5">Restante por liquidar</span>
+            <span id="kpi-pendiente-real" class="text-xl font-black text-error">€0,00</span>
+            <span class="text-[9px] text-outline block mt-0.5">Restante por liquidar</span>
           </div>
         </div>
       </div>
@@ -217,7 +239,7 @@ export function render(state) {
         })}
       </div>
 
-      <!-- Columna Derecha: Tabla de Presupuesto Detallada -->
+      <!-- Columna Derecha: Tabla de Presupuesto Detallada (Permitiendo scroll natural) -->
       <div class="lg:col-span-8">
         ${Card({
           content: `
@@ -227,7 +249,7 @@ export function render(state) {
               </h3>
             </div>
             
-            <div id="budget-categories-container" class="space-y-6 max-h-[750px] overflow-y-auto pr-1 custom-scrollbar">
+            <div id="budget-categories-container" class="space-y-6">
               <!-- Renderizado dinámicamente -->
             </div>
           `
@@ -248,18 +270,62 @@ export function render(state) {
  */
 export function init(state, db) {
   
+  // Filtrar filas de totales si existieran en el estado (defensa contra semillas CSV literales)
+  const getFilteredBudget = () => {
+    return (state.weddingBudget || []).filter(item => {
+      const cat = (item.category || '').trim().toUpperCase();
+      return cat !== 'Z. TOTALES' && cat !== 'TOTALES';
+    });
+  };
+
   const renderKPIs = () => {
-    const budget = state.weddingBudget || [];
+    const budget = getFilteredBudget();
+    const N = state.weddingGuests || 280;
+    const C = state.weddingCostPax || 90.00;
     
-    // Sumas
+    // 1. Suma Global (con todos los conceptos reales)
     const totalGlobal = budget.reduce((sum, item) => sum + item.total, 0);
+    
+    // 2. Total Real de la Pareja (excluyendo regalos)
     const totalReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.total, 0);
     const totalPagadoReal = budget.filter(item => !item.isGift).reduce((sum, item) => sum + item.paid, 0);
     const pendienteReal = Math.max(totalReal - totalPagadoReal, 0);
-    
     const pctPagado = totalReal > 0 ? ((totalPagadoReal / totalReal) * 100).toFixed(1) : '0.0';
 
-    // Rellenar UI
+    // 3. Neto Pareja (Descontando todo lo cubierto por los cubiertos/banquete de los invitados)
+    // Conceptos considerados "dentro del cubierto": Catering (N * C), Finca (50%), Iluminación y DJ.
+    // Para calcular este total, restamos las versiones contratadas de estos conceptos de la suma real.
+    let totalSinCubierto = 0;
+    let paidSinCubierto = 0;
+
+    budget.forEach(item => {
+      if (item.isGift) return; // Ignorar regalos de antemano
+
+      const conceptLower = item.concept.toLowerCase();
+      const isCatering = conceptLower.includes('catering');
+      const isFinca = conceptLower.includes('finca');
+      const isIlum = conceptLower.includes('iluminación') || conceptLower.includes('ilumiación');
+      const isDJ = conceptLower.includes('dj') || conceptLower.includes('sonido');
+
+      if (isCatering || isIlum || isDJ) {
+        // Asumimos que entran al 100% dentro del cubierto, se descuentan
+        return;
+      }
+
+      if (isFinca) {
+        // La finca se asume al 50% cubierta por el banquete, por tanto la pareja asume el otro 50%
+        totalSinCubierto += item.total / 2;
+        paidSinCubierto += item.paid / 2;
+      } else {
+        // El resto de conceptos son pagados enteramente por la pareja
+        totalSinCubierto += item.total;
+        paidSinCubierto += item.paid;
+      }
+    });
+
+    const pctNeto = totalSinCubierto > 0 ? ((paidSinCubierto / totalSinCubierto) * 100).toFixed(1) : '0.0';
+
+    // Rellenar elementos DOM
     const elGlobal = document.getElementById('kpi-total-global');
     const elReal = document.getElementById('kpi-total-real');
     const elPagado = document.getElementById('kpi-total-pagado');
@@ -267,6 +333,11 @@ export function init(state, db) {
     const elPctText = document.getElementById('kpi-pagado-pct-text');
     const elValText = document.getElementById('kpi-pagado-values-text');
     const elBar = document.getElementById('kpi-pagado-bar');
+
+    const elNeto = document.getElementById('kpi-total-neto');
+    const elNetoPctText = document.getElementById('kpi-neto-pct-text');
+    const elNetoValText = document.getElementById('kpi-neto-values-text');
+    const elNetoBar = document.getElementById('kpi-neto-bar');
 
     if (elGlobal) elGlobal.innerText = `€${totalGlobal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     if (elReal) elReal.innerText = `€${totalReal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -276,25 +347,31 @@ export function init(state, db) {
     if (elPctText) elPctText.innerText = `${pctPagado}% pagado`;
     if (elValText) elValText.innerText = `€${totalPagadoReal.toLocaleString('es-ES', { maximumFractionDigits: 0 })} / €${totalReal.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`;
     if (elBar) elBar.style.width = `${Math.min(parseFloat(pctPagado), 100)}%`;
+
+    if (elNeto) elNeto.innerText = `€${totalSinCubierto.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elNetoPctText) elNetoPctText.innerText = `${pctNeto}% pagado`;
+    if (elNetoValText) elNetoValText.innerText = `€${paidSinCubierto.toLocaleString('es-ES', { maximumFractionDigits: 0 })} / €${totalSinCubierto.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`;
+    if (elNetoBar) elNetoBar.style.width = `${Math.min(parseFloat(pctNeto), 100)}%`;
   };
 
   const renderBanquete = () => {
-    const budget = state.weddingBudget || [];
+    const budget = getFilteredBudget();
     const N = state.weddingGuests || 280;
     const C = state.weddingCostPax || 90.00;
 
-    // Badge de invitados
     const badge = document.getElementById('pax-count-badge');
     if (badge) badge.innerText = `${N} invitados`;
 
-    // Buscar partidas del banquete para el cálculo real por pax
+    // Buscar Finca
     const fincaItem = budget.find(item => item.category === 'BANQUETE' && item.concept.toLowerCase().includes('finca'));
     const fincaTotal = fincaItem ? fincaItem.total : 5200.00;
     const fincaHalfTotal = fincaTotal / 2;
 
+    // Buscar Iluminación
     const ilumItem = budget.find(item => item.category === 'BANQUETE' && item.concept.toLowerCase().includes('iluminación'));
     const ilumTotal = ilumItem ? ilumItem.total : 3086.00;
 
+    // Buscar DJ
     const djItem = budget.find(item => item.category === 'FIESTA' && item.concept.toLowerCase().includes('dj'));
     const djTotal = djItem ? djItem.total : 2257.00;
 
@@ -357,7 +434,7 @@ export function init(state, db) {
     if (!container) return;
 
     container.innerHTML = '';
-    const budget = state.weddingBudget || [];
+    const budget = getFilteredBudget();
 
     const categories = ['BANQUETE', 'FIESTA', 'FOTO/VIDEO', 'IGLESIA', 'IMAGEN', 'REGALOS', 'VIAJE', 'OTROS'];
 
@@ -377,6 +454,9 @@ export function init(state, db) {
       const catPaid = catItems.reduce((sum, item) => sum + item.paid, 0);
       const catPending = Math.max(catTotal - catPaid, 0);
 
+      // Limpiar y securizar ID del selector (evitando barras '/' que rompen querySelector)
+      const cleanCatId = `cat-items-list-${catName.replace(/[^A-Z0-9]/ig, '-')}`;
+
       // Crear sección de la categoría
       const catSection = document.createElement('div');
       catSection.className = 'bg-background/25 rounded-2xl p-4 border border-outline-variant/10 shadow-sm space-y-3';
@@ -393,13 +473,13 @@ export function init(state, db) {
             <span class="text-error">Pendiente: <strong>€${catPending.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</strong></span>
           </div>
         </div>
-        <div class="divide-y divide-outline-variant/5" id="cat-items-list-${catName}">
+        <div class="divide-y divide-outline-variant/5" id="${cleanCatId}">
           <!-- Conceptos renderizados dinámicamente -->
         </div>
       `;
 
       container.appendChild(catSection);
-      const itemsList = catSection.querySelector(`#cat-items-list-${catName}`);
+      const itemsList = catSection.querySelector(`#${cleanCatId}`);
 
       catItems.forEach(item => {
         const itemEl = document.createElement('div');
