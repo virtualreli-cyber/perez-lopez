@@ -5,6 +5,15 @@ import { Button } from '../../../components/Button.js';
 let selectedIds = [];
 let editingTaskId = null;
 
+let tripCategories = [
+  'Papeleo y Burocracia',
+  'Maleta: Sri Lanka',
+  'Maleta: Maldivas',
+  'Neceser y Botiquín',
+  'Electrónica y Varios',
+  'Cuenta Atrás (Últimas 96h)'
+];
+
 /**
  * Renderiza la interfaz de Preparación del Viaje e Itinerario de la Luna de Miel.
  * 
@@ -13,6 +22,15 @@ let editingTaskId = null;
  */
 export function render(state) {
   selectedIds = [];
+
+  tripCategories = state.tripCategories || [
+    'Papeleo y Burocracia',
+    'Maleta: Sri Lanka',
+    'Maleta: Maldivas',
+    'Neceser y Botiquín',
+    'Electrónica y Varios',
+    'Cuenta Atrás (Últimas 96h)'
+  ];
   
   // Inicializar filtros si no existen
   if (!state.activeTripFilter) {
@@ -21,6 +39,8 @@ export function render(state) {
   if (!state.activeTripCategoryFilter) {
     state.activeTripCategoryFilter = 'all';
   }
+
+  const categoryOptions = tripCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 
   const content = `
     <!-- Menú de Sub-Páginas del Módulo Boda -->
@@ -91,10 +111,7 @@ export function render(state) {
             <div>
               <label for="trip-task-category-input" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
               <select id="trip-task-category-input" class="w-full bg-background border-none rounded-xl px-4 py-3.5 text-sm focus:ring-0 focus:outline-none text-outline">
-                <option value="Documentos">Documentos</option>
-                <option value="Equipaje">Equipaje</option>
-                <option value="Reservas">Reservas</option>
-                <option value="Otros">Otros</option>
+                \${categoryOptions}
               </select>
             </div>
             <div>
@@ -220,8 +237,14 @@ export function init(state, db) {
   if (!state.activeTripCategoryFilter) state.activeTripCategoryFilter = 'all';
 
   editingTaskId = null;
-
-  const tripCategories = ['Documentos', 'Equipaje', 'Reservas', 'Otros'];
+  tripCategories = state.tripCategories || [
+    'Papeleo y Burocracia',
+    'Maleta: Sri Lanka',
+    'Maleta: Maldivas',
+    'Neceser y Botiquín',
+    'Electrónica y Varios',
+    'Cuenta Atrás (Últimas 96h)'
+  ];
 
   const updateBulkDeleteButton = () => {
     const btn = document.getElementById('bulk-delete-trip-btn');

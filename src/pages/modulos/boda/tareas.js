@@ -22,6 +22,9 @@ export function render(state) {
     state.activeWeddingCategoryFilter = 'all';
   }
 
+  const weddingCategories = state.weddingCategories || ['Banquete', 'Invitados', 'Vestimenta', 'Logística'];
+  const categoryOptions = weddingCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
   const content = `
     <!-- Menú de Sub-Páginas del Módulo Boda -->
     <div class="flex border-b border-outline-variant/20 mb-8 gap-1 overflow-x-auto pb-1 custom-scrollbar">
@@ -83,10 +86,7 @@ export function render(state) {
             <div>
               <label for="wedding-task-category" class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Categoría</label>
               <select id="wedding-task-category" class="w-full bg-background border-none rounded-xl px-4 py-3.5 text-sm focus:ring-0 focus:outline-none text-outline">
-                <option value="Banquete">Banquete</option>
-                <option value="Invitados">Invitados</option>
-                <option value="Vestimenta">Vestimenta</option>
-                <option value="Logística">Logística</option>
+                \${categoryOptions}
               </select>
             </div>
             <div>
@@ -143,7 +143,7 @@ export function init(state, db) {
 
   editingTaskId = null;
 
-  const weddingCategories = ['Banquete', 'Invitados', 'Vestimenta', 'Logística'];
+  const weddingCategories = state.weddingCategories || ['Banquete', 'Invitados', 'Vestimenta', 'Logística'];
 
   const updateBulkDeleteButton = () => {
     const btn = document.getElementById('bulk-delete-wedding-btn');

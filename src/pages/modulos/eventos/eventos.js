@@ -5,7 +5,7 @@ import { Button } from '../../../components/Button.js';
 let selectedIds = [];
 let editingEventId = null;
 
-const eventCategories = ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'];
+let eventCategories = ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'];
 
 /**
  * Renderiza la interfaz de Eventos y Calendario.
@@ -16,6 +16,8 @@ const eventCategories = ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'];
 export function render(state) {
   selectedIds = [];
   editingEventId = null;
+
+  eventCategories = state.eventCategories || ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'];
 
   // Inicializar filtros si no existen
   if (!state.activeEventFilter) state.activeEventFilter = 'all';
@@ -129,6 +131,8 @@ export function init(state, db) {
   if (!state.activeEventCategoryFilter) state.activeEventCategoryFilter = 'all';
 
   editingEventId = null;
+
+  eventCategories = state.eventCategories || ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'];
 
   const updateBulkDeleteButton = () => {
     const btn = document.getElementById('bulk-delete-events-btn');

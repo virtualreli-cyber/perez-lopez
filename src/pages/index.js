@@ -24,6 +24,16 @@ let state = {
   events: [],
   tripTasks: [],
   shoppingCategories: [],
+  weddingCategories: JSON.parse(localStorage.getItem('state_wedding_categories')) || ['Banquete', 'Invitados', 'Vestimenta', 'Logística'],
+  tripCategories: JSON.parse(localStorage.getItem('state_trip_categories')) || [
+    'Papeleo y Burocracia',
+    'Maleta: Sri Lanka',
+    'Maleta: Maldivas',
+    'Neceser y Botiquín',
+    'Electrónica y Varios',
+    'Cuenta Atrás (Últimas 96h)'
+  ],
+  eventCategories: JSON.parse(localStorage.getItem('state_event_categories')) || ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'],
   activeShoppingFilter: 'all',
   activeShoppingCategoryFilter: 'all',
   savingsGoal: { id: null, name: 'Ahorros Viaje', target: 5000, current: 4250, deadline: '2026-08-16' },
@@ -442,11 +452,35 @@ async function loadInitialData() {
   state.weddingBudget = JSON.parse(localStorage.getItem('state_wedding_budget')) || defaultWeddingBudget;
   
   const defaultTripTasks = [
-    { id: 1, title: 'Reservar vuelos internacionales', category: 'Reservas', completed: true },
-    { id: 2, title: 'Solicitar visado para Sri Lanka', category: 'Documentos', completed: false },
-    { id: 3, title: 'Contratar seguro médico internacional', category: 'Documentos', completed: false },
-    { id: 4, title: 'Reservar resorts sobre el agua en Maldivas', category: 'Reservas', completed: true },
-    { id: 5, title: 'Preparar adaptador de corriente y botiquín', category: 'Equipaje', completed: false }
+    { id: 1, title: 'Comprobar vigencia Pasaportes (>6 meses)', category: 'Papeleo y Burocracia', completed: false },
+    { id: 2, title: 'Visado de Sri Lanka (eVisa)', category: 'Papeleo y Burocracia', completed: false },
+    { id: 3, title: 'Descargar/Imprimir Vuelos Emirates', category: 'Papeleo y Burocracia', completed: true },
+    { id: 4, title: 'Descargar/Imprimir Alojamientos', category: 'Papeleo y Burocracia', completed: true },
+    { id: 5, title: 'Seguro de viaje (telf. y póliza a mano)', category: 'Papeleo y Burocracia', completed: true },
+    { id: 6, title: 'Tarjetas crédito/débito y avisar al banco', category: 'Papeleo y Burocracia', completed: false },
+    { id: 7, title: 'Ropa de templos (Hombros y rodillas cubiertos)', category: 'Maleta: Sri Lanka', completed: false },
+    { id: 8, title: 'Calcetines gordos (para templos)', category: 'Maleta: Sri Lanka', completed: false },
+    { id: 9, title: 'Calzado de trote/trekking (ya usado)', category: 'Maleta: Sri Lanka', completed: false },
+    { id: 10, title: 'Ropa transpirable (algodón/lino)', category: 'Maleta: Sri Lanka', completed: false },
+    { id: 11, title: 'Chubasquero ligero / Cortavientos', category: 'Maleta: Sri Lanka', completed: false },
+    { id: 12, title: 'Bañadores y bikinis (3-4 por persona)', category: 'Maleta: Maldivas', completed: false },
+    { id: 13, title: 'Ropa informal-elegante para cenas', category: 'Maleta: Maldivas', completed: false },
+    { id: 14, title: 'Calzado de playa / escarpines', category: 'Maleta: Maldivas', completed: false },
+    { id: 15, title: 'Gorra/sombrero y gafas de sol', category: 'Maleta: Maldivas', completed: false },
+    { id: 16, title: 'Protector solar Safe Reef (Factor 50)', category: 'Neceser y Botiquín', completed: false },
+    { id: 17, title: 'Repelente de mosquitos (DEET alto)', category: 'Neceser y Botiquín', completed: false },
+    { id: 18, title: 'Botiquín estomacal (Protector, fortasec, suero...)', category: 'Neceser y Botiquín', completed: false },
+    { id: 19, title: 'Botiquín general (Paracetamol, tiritas...)', category: 'Neceser y Botiquín', completed: false },
+    { id: 20, title: 'After-sun / Aloe Vera', category: 'Neceser y Botiquín', completed: false },
+    { id: 21, title: 'Adaptador de enchufe universal (D y G)', category: 'Electrónica y Varios', completed: false },
+    { id: 22, title: 'Batería externa (Powerbank)', category: 'Electrónica y Varios', completed: false },
+    { id: 23, title: 'Funda impermeable para el móvil', category: 'Electrónica y Varios', completed: false },
+    { id: 24, title: 'Bolsas herméticas (tipo Zip)', category: 'Electrónica y Varios', completed: false },
+    { id: 25, title: 'Auriculares para el vuelo', category: 'Electrónica y Varios', completed: false },
+    { id: 26, title: 'Formulario IMUGA (Maldivas)', category: 'Cuenta Atrás (Últimas 96h)', completed: false },
+    { id: 27, title: 'Check-in online Emirates', category: 'Cuenta Atrás (Últimas 96h)', completed: false },
+    { id: 28, title: 'Descargar mapas sin conexión (Maps.me / Google)', category: 'Cuenta Atrás (Últimas 96h)', completed: false },
+    { id: 29, title: 'Cambiar efectivo inicial', category: 'Cuenta Atrás (Últimas 96h)', completed: false }
   ];
   state.tripTasks = JSON.parse(localStorage.getItem('state_trip_tasks')) || defaultTripTasks;
   state.shoppingCategories = JSON.parse(localStorage.getItem('state_shopping_categories')) || [
@@ -466,6 +500,17 @@ async function loadInitialData() {
   state.expenses = state.financesTransactions.filter(t => t.type === 'gasto').map(t => ({
     id: t.id, desc: t.desc, amount: t.amount, payer: t.payer, date: t.date
   }));
+
+  state.weddingCategories = JSON.parse(localStorage.getItem('state_wedding_categories')) || ['Banquete', 'Invitados', 'Vestimenta', 'Logística'];
+  state.tripCategories = JSON.parse(localStorage.getItem('state_trip_categories')) || [
+    'Papeleo y Burocracia',
+    'Maleta: Sri Lanka',
+    'Maleta: Maldivas',
+    'Neceser y Botiquín',
+    'Electrónica y Varios',
+    'Cuenta Atrás (Últimas 96h)'
+  ];
+  state.eventCategories = JSON.parse(localStorage.getItem('state_event_categories')) || ['Social', 'Salud', 'Parroquia', 'Familia', 'Otros'];
 
   console.log('Datos cargados de forma local (LocalStorage).');
 }
@@ -488,6 +533,10 @@ function saveToLocalStorage() {
   localStorage.setItem('state_wedding_guests', JSON.stringify(state.weddingGuests));
   localStorage.setItem('state_wedding_cost_pax', JSON.stringify(state.weddingCostPax));
   localStorage.setItem('state_wedding_budget', JSON.stringify(state.weddingBudget));
+  
+  localStorage.setItem('state_wedding_categories', JSON.stringify(state.weddingCategories));
+  localStorage.setItem('state_trip_categories', JSON.stringify(state.tripCategories));
+  localStorage.setItem('state_event_categories', JSON.stringify(state.eventCategories));
 }
 
 // --- INTERFAZ DE BASE DE DATOS UNIFICADA (DB INTERFACE) CON ACTUALIZACIONES OPTIMISTAS ---
@@ -1558,6 +1607,24 @@ export const db = {
     } else {
       saveToLocalStorage();
     }
+  },
+
+  async setWeddingCategories(cats) {
+    state.weddingCategories = cats;
+    saveToLocalStorage();
+    triggerRerender();
+  },
+
+  async setTripCategories(cats) {
+    state.tripCategories = cats;
+    saveToLocalStorage();
+    triggerRerender();
+  },
+
+  async setEventCategories(cats) {
+    state.eventCategories = cats;
+    saveToLocalStorage();
+    triggerRerender();
   }
 };
 
@@ -1576,10 +1643,19 @@ const routes = {
   '#/finanzas/ajustes': { render: renderFinanzasAjustes, init: initFinanzasAjustes, tab: 'finanzas/ajustes' },
   '#/eventos': { render: renderEventos, init: initEventos, tab: 'eventos' },
   '#/ajustes': { render: renderAjustes, init: initAjustes, tab: 'settings' },
+  '#/ajustes/general': { render: renderAjustes, init: initAjustes, tab: 'settings' },
+  '#/ajustes/hogar': { render: renderAjustes, init: initAjustes, tab: 'settings' },
+  '#/ajustes/boda': { render: renderAjustes, init: initAjustes, tab: 'settings' },
+  '#/ajustes/finanzas': { render: renderAjustes, init: initAjustes, tab: 'settings' },
+  '#/ajustes/eventos': { render: renderAjustes, init: initAjustes, tab: 'settings' },
 };
 
 async function router() {
-  const hash = location.hash || '#/dashboard';
+  let hash = location.hash || '#/dashboard';
+  if (hash === '#/ajustes') {
+    location.hash = '#/ajustes/general';
+    return;
+  }
   let route = routes[hash];
   
   if (route && route.tab !== 'settings') {
